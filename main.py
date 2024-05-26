@@ -57,6 +57,9 @@ def main():
     trainer.fit(train_dataloader,test_dataloader)
 
 
+if __name__ == '__main__':
+    main()
+    
 
     
 
