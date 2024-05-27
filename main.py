@@ -13,14 +13,24 @@ def load_yaml_config(path):
         config = yaml.full_load(f)
     return config
 
-def load_data(path,config):
+
+def load_data(path,config,aug_path = None):
     data = np.load(path,allow_pickle=True).item()
-    
+
+
     sequence,label = data['data'], data['label']
+
+    if aug_path is not None:
+        aug_data = np.load(aug_path,allow_pickle=True).item()
+        aug_sequence,aug_label = aug_data['data'],aug_data['label']
+        sequence = np.concatenate((sequence,aug_sequence),axis=0)
+        label = np.concatenate((label,aug_label),axis=0)
+
     B,C,T = sequence.shape
 
+
     assert config['dataset']['seq_len'] == T and config['dataset']['feature_size'] == C
-    
+
     train_loader , test_loader = create_dataloader(sequence,label,
                                                    config['dataset']['batch_size'],config['dataset']['split_size'],config['dataset']['label_type'])
     
@@ -31,6 +41,7 @@ def load_data(path,config):
 def parse_argument():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data',type=str,default=None)
+    parser.add_argument('--aug_data',type=str,default=None)
     parser.add_argument('--ckpt',type=str,default=None)
     parser.add_argument('--step',type=int,default=1)
     parser.add_argument('--config',type=str,default=None)
@@ -57,7 +68,7 @@ def main():
                             d_model = config['model']['d_model'],n_head = config['model']['n_head'],fn_hidden=config['model']['fn_hidden'],
                             n_layers = config['model']['n_layers'],dropout = config['model']['dropout'])
 
-    train_dataloader , test_dataloader = load_data(args.data,config)
+    train_dataloader , test_dataloader = load_data(args.data,config,aug_path=args.aug_data)
     trainer = Trainer(model,config['dataset']['max_iteration'],config['dataset']['lr'],config['dataset']['save_iteration'],args.ckpt)
 
     trainer.fit(train_dataloader,test_dataloader)
