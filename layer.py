@@ -20,6 +20,18 @@ class PositionalEmbedding(nn.Module): # NLC
 
   def forward(self,x):
     return self.pe[:,:x.size(1)]
+  
+  
+class LearnablePositionalEncoding(nn.Module):
+    def __init__(self,d_model,dropout=0.1,max_len=1024):
+        super(LearnablePositionalEncoding,self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
+        self.pe = nn.Parameter(torch.empty(1,max_len,d_model))
+        nn.init.uniform_(self.pe,-0.02,0.02)
+
+    def forward(self,x):
+        x = x + self.pe
+        return self.dropout(x)
 
 
 class TokenEmbedding(nn.Module): # NLC
@@ -41,7 +53,7 @@ class DataEmbedding(nn.Module):
   def __init__(self,c_in,d_model,dropout=0.1,max_len=1024):
     super(DataEmbedding,self).__init__()
     self.value_embedding = TokenEmbedding(c_in=c_in,d_model=d_model)
-    self.position_embedding = PositionalEmbedding(d_model,max_len)
+    self.position_embedding = LearnablePositionalEncoding(d_model=d_model,dropout=dropout,max_len=max_len)
     self.dropout = nn.Dropout(dropout)
 
   def forward(self,x):
