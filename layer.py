@@ -53,11 +53,11 @@ class DataEmbedding(nn.Module):
   def __init__(self,c_in,d_model,dropout=0.1,max_len=1024):
     super(DataEmbedding,self).__init__()
     self.value_embedding = TokenEmbedding(c_in=c_in,d_model=d_model)
-    self.position_embedding = LearnablePositionalEncoding(d_model=d_model,dropout=dropout,max_len=max_len)
+    self.position_embedding = PositionalEmbedding(d_model=d_model,max_len=max_len)
     self.dropout = nn.Dropout(dropout)
 
   def forward(self,x):
-    x = self.value_embedding(x) + self.position_embedding(x)
+    x = self.value_embedding(x) + self.position_embedding(x) + x
     return self.dropout(x)
   
   
@@ -132,12 +132,6 @@ class InceptionModule(nn.Module):
     self.bn = nn.BatchNorm1d((len(kernels) + 1) * filter_size)
     self.act = nn.GELU()
 
-    self.attn = AttentionBlock(
-        n_embd = (len(kernels)+ 1) * filter_size,
-        n_head=4,
-        mlp_hidden_time = 2,
-        drop=0.4
-    )
 
   def forward(self,x):
     _x = x
@@ -154,11 +148,6 @@ class InceptionModule(nn.Module):
     x = torch.cat(x_list,dim=1)
     x = self.bn(x)
     x = self.act(x)
-
-    if self.use_attn:
-      x = x.permute((0,2,1))
-      x = self.attn(x)
-      x = x.permute((0,2,1))
 
     return x
 

@@ -45,6 +45,7 @@ class InceptionTime(nn.Module):
 
     self.inceptions = nn.ModuleList(self.inceptions)
     self.shortcuts = nn.ModuleList(self.shortcuts)
+    
     self.out = nn.Sequential(
       nn.Linear(prev,label_dim * 2),
       nn.ReLU(),
