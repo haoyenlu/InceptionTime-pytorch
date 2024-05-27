@@ -2,7 +2,7 @@ import argparse
 import yaml
 import numpy as np
 
-from model import InceptionTime
+from model import InceptionTime, Transformer
 from data_util import create_dataloader
 from train_util import Trainer
 
@@ -34,7 +34,7 @@ def parse_argument():
     parser.add_argument('--ckpt',type=str,default=None)
     parser.add_argument('--step',type=int,default=1)
     parser.add_argument('--config',type=str,default=None)
-
+    parser.add_argument('--model',type=str)
 
     
 
@@ -47,11 +47,16 @@ def main():
     args = parse_argument()
     config = load_yaml_config(args.config)
 
-
-    model = InceptionTime(config['dataset']['seq_len'],config['dataset']['feature_size'],config['dataset']['label_dim'],
-                          filter_size=config['model']['filter_size'],dropout=config['model']['dropout'],depth=config['model']['depth'],kernels=config['model']['kernels'],
-                          use_residual=config['model']['use_residual'],use_bottleneck=config['model']['use_bottleneck'],use_attn=config['model']['use_attn'],use_embedding=config['model']['use_embedding'])
+    if args.model == 'Inception':
+        model = InceptionTime(config['dataset']['seq_len'],config['dataset']['feature_size'],config['dataset']['label_dim'],
+                            filter_size=config['model']['filter_size'],dropout=config['model']['dropout'],depth=config['model']['depth'],kernels=config['model']['kernels'],
+                            use_residual=config['model']['use_residual'],use_bottleneck=config['model']['use_bottleneck'],use_attn=config['model']['use_attn'],use_embedding=config['model']['use_embedding'])
     
+    elif args.model == 'Transformer':
+        model = Transformer(config['dataset']['seq_len'],config['dataset']['feature_size'],config['dataset']['label_dim'],
+                            d_model = config['model']['d_model'],n_head = config['model']['n_head'],fn_hidden=config['model']['fn_hidden'],
+                            n_layers = config['model']['n_layers'],dropout = config['model']['dropout'])
+
     train_dataloader , test_dataloader = load_data(args.data,config)
     trainer = Trainer(model,config['dataset']['max_iteration'],config['dataset']['lr'],config['dataset']['save_iteration'],args.ckpt)
 

@@ -2,113 +2,9 @@ import torch
 import torch.nn as nn
 import math
 
+from embedding_layer import PositionalEmbedding
+from transformer_layer import Encoder
 
-class PositionalEmbedding(nn.Module): # NLC
-  def __init__(self,d_model,max_len=1024):
-    super(PositionalEmbedding,self).__init__()
-    pe = torch.zeros(max_len,d_model).float()
-    pe.require_grad = False
-
-    position = torch.arange(0,max_len).float().unsqueeze(1)
-    div_term = (torch.arange(0,d_model,2).float() * -(math.log(10000.0) / d_model)).exp()
-
-    pe[:,0::2] = torch.sin(position * div_term)
-    pe[:,1::2] = torch.cos(position * div_term)
-
-    pe = pe.unsqueeze(0)
-    self.register_buffer('pe',pe)
-
-  def forward(self,x):
-    return self.pe[:,:x.size(1)]
-  
-  
-class LearnablePositionalEncoding(nn.Module): #NLC
-    def __init__(self,d_model,dropout=0.1,max_len=1024):
-        super(LearnablePositionalEncoding,self).__init__()
-        self.dropout = nn.Dropout(p=dropout)
-        self.pe = nn.Parameter(torch.empty(1,max_len,d_model))
-        nn.init.uniform_(self.pe,-0.02,0.02)
-
-    def forward(self,x):
-        x = x + self.pe
-        return self.dropout(x)
-
-
-class TokenEmbedding(nn.Module): # NLC
-  def __init__(self,c_in,d_model):
-    super(TokenEmbedding,self).__init__()
-    padding = 1 if torch.__version__ >= '1.5.0' else 2
-    self.tokenConv = nn.Conv1d(in_channels=c_in,out_channels=d_model,
-                               kernel_size=1,padding='same',bias=False)
-    for m in self.modules():
-      if isinstance(m,nn.Conv1d):
-        nn.init.kaiming_normal(m.weight,mode='fan_in',nonlinearity='leaky_relu')
-
-  def forward(self,x):
-    x = self.tokenConv(x.permute(0,2,1)).transpose(1,2)
-    return x
-
-
-class DataEmbedding(nn.Module):
-  def __init__(self,c_in,d_model,dropout=0.1,max_len=1024):
-    super(DataEmbedding,self).__init__()
-    self.value_embedding = TokenEmbedding(c_in=c_in,d_model=d_model)
-    self.position_embedding = PositionalEmbedding(d_model=d_model,max_len=max_len)
-    self.dropout = nn.Dropout(dropout)
-
-  def forward(self,x):
-    x = self.value_embedding(x) + self.position_embedding(x) + x
-    return self.dropout(x)
-  
-  
-class Conv_MLP(nn.Module):
-    def __init__(self,in_dim,out_dim,resid_pdrop=0.):
-        super().__init__()
-        self.sequential = nn.Sequential(
-            nn.Conv1d(in_dim,out_dim,3,stride=1,padding=1),
-            nn.Dropout(p=resid_pdrop)
-        )
-
-    def forward(self,x):
-        return self.sequential(x)
-
-class FullAttention(nn.Module):
-    def __init__(self,
-                 n_embd, # the embed dim
-                 n_head, # the number of heads
-                 attn_pdrop=0.1, # attention dropout prob
-                 resid_pdrop=0.1, # residual attention dropout prob
-    ):
-        super().__init__()
-        assert n_embd % n_head == 0
-        # key, query, value projections for all heads
-        self.key = nn.Linear(n_embd, n_embd)
-        self.query = nn.Linear(n_embd, n_embd)
-        self.value = nn.Linear(n_embd, n_embd)
-
-        # regularization
-        self.attn_drop = nn.Dropout(attn_pdrop)
-        self.resid_drop = nn.Dropout(resid_pdrop)
-        # output projection
-        self.proj = nn.Linear(n_embd, n_embd)
-        self.n_head = n_head
-
-    def forward(self, x):
-        B, T, C = x.size()
-        k = self.key(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
-        q = self.query(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
-        v = self.value(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
-        att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1))) # (B, nh, T, T)
-
-        att = torch.nn.functional.softmax(att, dim=-1) # (B, nh, T, T)
-        att = self.attn_drop(att)
-        y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
-        y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side, (B, T, C)
-        att = att.mean(dim=1, keepdim=False) # (B, T, T)
-
-        # output projection
-        y = self.resid_drop(self.proj(y))
-        return y
 
 class InceptionModule(nn.Module):
   def __init__(self,input_dim,filter_size=32,kernels=[10,20,40],use_bottleneck=True,use_attn=False):
@@ -160,25 +56,41 @@ class ResidualLayer(nn.Sequential):
 
   def forward(self,residual_input,input):
     residual = self.conv(residual_input)
-    residual = self.bn(residual)
+    residual = self.bn(residual) 
 
     x = residual + input
     x = self.act(x)
     return x
 
-class AttentionBlock(nn.Sequential):
-  def __init__(self,n_embd,n_head,mlp_hidden_time,drop = 0.1):
-    super(AttentionBlock,self).__init__()
-    self.attn =  FullAttention(n_embd,n_head)
-    self.ln = nn.LayerNorm(n_embd)
-    self.mlp = nn.Sequential(
-        nn.Linear(n_embd, 2 * mlp_hidden_time),
-        nn.GELU(),
-        nn.Linear(mlp_hidden_time * 2, n_embd),
-        nn.Dropout(drop),
+
+class Transformer(nn.Module):
+  def __init__(self,seq_len,feature_size,label_dim,d_model,n_head,fn_hidden,n_layers,dropout):
+    super(Transformer,self).__init__()
+    self.encoder_input_layer = nn.Linear(feature_size,d_model)
+    self.emb = PositionalEmbedding(d_model,seq_len)
+    self.encoder = Encoder(
+        n_layers=n_layers,
+        d_model=d_model,
+        fn_hidden=fn_hidden,
+        n_head=n_head,
+        dropout=dropout
+    )
+    self.out = nn.Sequential(
+      nn.LayerNorm(d_model),
+      nn.Flatten(),
+      nn.Linear(d_model * seq_len,512),
+      nn.ReLU(),
+      nn.Linear(512,256),
+      nn.ReLU(),
+      nn.Linear(256,128),
+      nn.ReLU(),
+      nn.Linear(128,label_dim),
+      nn.Softmax()
     )
 
-  def forward(self,x):
-    x = x + self.attn(self.ln(x))
-    x = x + self.mlp(self.ln(x))
-    return x
+    def forward(self,x):
+      x = self.encoder_input_layer(x)
+      x = self.emb(x)
+      x = self.encoder(x)
+      x = self.out(x)
+      return x

@@ -1,0 +1,19 @@
+dataset:
+  seq_len: 1024
+  feature_size: 24
+  label_dim: 30
+  batch_size: 32
+  split_size: 0.8
+  label_type: 'task'
+  max_iteration: 1000
+  save_iteration: 100
+  lr: 0.001
+
+model:
+  d_model: 64
+  n_head: 4
+  fn_hidden: 128
+  n_layers: 4
+  dropout: 0.1
+
+
