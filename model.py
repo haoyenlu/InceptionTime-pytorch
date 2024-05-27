@@ -93,21 +93,22 @@ class Transformer(nn.Module):
             n_head=n_head,
             dropout=dropout
         )
+
         self.out = nn.Sequential(
-        nn.LayerNorm(d_model),
-        nn.Flatten(),
-        nn.Linear(d_model * seq_len,512),
-        nn.ReLU(),
-        nn.Linear(512,256),
-        nn.ReLU(),
-        nn.Linear(256,128),
-        nn.ReLU(),
-        nn.Linear(128,label_dim),
-        nn.Softmax()
+            nn.LayerNorm(d_model),
+            nn.Flatten(),
+            nn.Linear(d_model * seq_len,512),
+            nn.ReLU(),
+            nn.Linear(512,256),
+            nn.ReLU(),
+            nn.Linear(256,128),
+            nn.ReLU(),
+            nn.Linear(128,label_dim),
+            nn.Softmax()
         )
 
     def forward(self,x):
-        x = self.encoder_input_layer(x)
+        x = self.encoder_input_layer(x.permute((0,2,1))).permute((0,2,1))
         x = self.emb(x)
         x = self.encoder(x)
         x = self.out(x)
