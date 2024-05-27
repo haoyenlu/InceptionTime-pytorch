@@ -22,7 +22,7 @@ class PositionalEmbedding(nn.Module): # NLC
     return self.pe[:,:x.size(1)]
   
   
-class LearnablePositionalEncoding(nn.Module):
+class LearnablePositionalEncoding(nn.Module): #NLC
     def __init__(self,d_model,dropout=0.1,max_len=1024):
         super(LearnablePositionalEncoding,self).__init__()
         self.dropout = nn.Dropout(p=dropout)

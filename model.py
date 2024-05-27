@@ -17,12 +17,12 @@ class InceptionTime(nn.Module):
     self.use_residual = use_residual
     self.use_attn = use_attn
     
-    self.embedding = DataEmbedding(c_in = feature_size,d_model=filter_size,dropout=dropout,max_len=sequence_len)
+    self.embedding = DataEmbedding(c_in = feature_size,d_model=feature_size,dropout=dropout,max_len=sequence_len)
 
     self.inceptions = []
     self.shortcuts = []
 
-    prev = filter_size
+    prev = feature_size
     residual_prev = prev
 
     for d in range(depth):
