@@ -111,5 +111,6 @@ class Transformer(nn.Module):
         x = self.encoder_input_layer(x.permute((0,2,1))).permute((0,2,1))
         x = self.emb(x)
         x = self.encoder(x)
+        print(x.shape)
         x = self.out(x)
         return x
