@@ -8,7 +8,7 @@ import math
 class InceptionModule(nn.Module):
   def __init__(self,input_dim,filter_size=32,kernels=[10,20,40],use_bottleneck=True,use_attn=False):
     super(InceptionModule,self).__init__()
-    self.bottleneck_size = 32
+    self.bottleneck_size = filter_size
     self.use_bottleneck = use_bottleneck
     self.use_attn = use_attn
     self.filter_size = filter_size
