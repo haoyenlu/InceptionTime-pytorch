@@ -130,7 +130,7 @@ class InceptionModule(nn.Module):
     self.conv6 = nn.Conv1d(input_dim,self.filter_size,kernel_size=1,padding='same',bias=False)
 
     self.bn = nn.BatchNorm1d((len(kernels) + 1) * filter_size)
-    self.act = nn.ReLU()
+    self.act = nn.GELU()
 
     self.attn = AttentionBlock(
         n_embd = (len(kernels)+ 1) * filter_size,
@@ -159,6 +159,7 @@ class InceptionModule(nn.Module):
       x = x.permute((0,2,1))
       x = self.attn(x)
       x = x.permute((0,2,1))
+
     return x
 
 class ResidualLayer(nn.Sequential):

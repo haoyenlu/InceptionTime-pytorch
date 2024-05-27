@@ -10,12 +10,12 @@ dataset:
   lr: 0.001
 
 model:
-  filter_size: 32
+  filter_size: 64
   dropout: 0.1
   depth: 6
   kernels: [10,20,40]
   use_residual: True
   use_bottleneck: True
-  use_attn: False
+  use_attn: True
 
 
