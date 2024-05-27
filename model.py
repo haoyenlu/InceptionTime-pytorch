@@ -107,11 +107,13 @@ class Transformer(nn.Module):
             nn.Softmax()
         )
 
-    def forward(self,x):
+    def forward(self,x): # NCL
         print(x.shape)
-        x = x.permute((0,2,1))
+        x = x.permute((0,2,1)) # NLC
         x = self.encoder_input_layer(x)
+        print(x.shape)
         x = self.emb(x)
+        print(x.shape)
         x = self.encoder(x)
         print(x.shape)
         x = self.out(x)
