@@ -35,6 +35,7 @@ def parse_argument():
     parser.add_argument('--step',type=int,default=1)
     parser.add_argument('--config',type=str,default=None)
 
+
     
 
     args = parser.parse_args()
@@ -49,7 +50,7 @@ def main():
 
     model = InceptionTime(config['dataset']['seq_len'],config['dataset']['feature_size'],config['dataset']['label_dim'],
                           filter_size=config['model']['filter_size'],dropout=config['model']['dropout'],depth=config['model']['depth'],kernels=config['model']['kernels'],
-                          use_residual=config['model']['use_residual'],use_bottleneck=config['model']['use_bottleneck'],use_attn=config['model']['use_attn'])
+                          use_residual=config['model']['use_residual'],use_bottleneck=config['model']['use_bottleneck'],use_attn=config['model']['use_attn'],use_embedding=config['model']['use_embedding'])
     
     train_dataloader , test_dataloader = load_data(args.data,config)
     trainer = Trainer(model,config['dataset']['max_iteration'],config['dataset']['lr'],config['dataset']['save_iteration'],args.ckpt)

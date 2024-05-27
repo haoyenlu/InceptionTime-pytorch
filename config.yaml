@@ -17,5 +17,6 @@ model:
   use_residual: True
   use_bottleneck: True
   use_attn: True
+  use_embedding: False
 
 
