@@ -108,13 +108,9 @@ class Transformer(nn.Module):
         )
 
     def forward(self,x): # NCL
-        print(x.shape)
         x = x.permute((0,2,1)) # NLC
         x = self.encoder_input_layer(x)
-        print(x.shape)
         x = self.emb(x)
-        print(x.shape)
         x = self.encoder(x)
-        print(x.shape)
         x = self.out(x)
         return x
