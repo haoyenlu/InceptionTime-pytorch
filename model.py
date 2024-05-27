@@ -1,7 +1,9 @@
 import torch
 import torch.nn as nn
 
-from layer import InceptionModule, ResidualLayer, DataEmbedding
+from layer import InceptionModule, ResidualLayer
+
+from embedding_layer import DataEmbedding
 
 
 class InceptionTime(nn.Module):
