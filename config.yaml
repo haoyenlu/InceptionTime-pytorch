@@ -11,6 +11,7 @@ dataset:
 
 model:
   filter_size: 32
+  dropout: 0.1
   depth: 6
   kernels: [10,20,40]
   use_residual: True
