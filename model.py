@@ -5,6 +5,9 @@ from layer import InceptionModule, ResidualLayer
 
 from embedding_layer import DataEmbedding
 
+from embedding_layer import PositionalEmbedding
+from transformer_layer import Encoder
+
 
 class InceptionTime(nn.Module):
   def __init__(self,sequence_len,feature_size,label_dim, 
@@ -76,3 +79,36 @@ class InceptionTime(nn.Module):
     x = self.out(x)
 
     return x
+  
+
+class Transformer(nn.Module):
+  def __init__(self,seq_len,feature_size,label_dim,d_model,n_head,fn_hidden,n_layers,dropout):
+    super(Transformer,self).__init__()
+    self.encoder_input_layer = nn.Linear(feature_size,d_model)
+    self.emb = PositionalEmbedding(d_model,seq_len)
+    self.encoder = Encoder(
+        n_layers=n_layers,
+        d_model=d_model,
+        fn_hidden=fn_hidden,
+        n_head=n_head,
+        dropout=dropout
+    )
+    self.out = nn.Sequential(
+      nn.LayerNorm(d_model),
+      nn.Flatten(),
+      nn.Linear(d_model * seq_len,512),
+      nn.ReLU(),
+      nn.Linear(512,256),
+      nn.ReLU(),
+      nn.Linear(256,128),
+      nn.ReLU(),
+      nn.Linear(128,label_dim),
+      nn.Softmax()
+    )
+
+    def forward(self,x):
+      x = self.encoder_input_layer(x)
+      x = self.emb(x)
+      x = self.encoder(x)
+      x = self.out(x)
+      return x
