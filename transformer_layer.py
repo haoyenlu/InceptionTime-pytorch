@@ -59,7 +59,7 @@ class EncoderBlock(nn.Module):
     def forward(self,x):
        _x = x
        x = self.attn(x)
-       x = self.dropou1(x)
+       x = self.dropout1(x)
        x = self.ln1(x + _x)
 
        _x = x
