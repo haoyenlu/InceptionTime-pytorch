@@ -62,7 +62,6 @@ class InceptionTime(nn.Module):
     def forward(self,x): # input shape: (N,C,L)
         assert self.sequence_len == x.shape[2] and self.feature_size == x.shape[1]
         
-        print(x.shape)
         if self.use_embedding:
             x = self.embedding(x.permute((0,2,1))).permute((0,2,1))
 
@@ -71,10 +70,10 @@ class InceptionTime(nn.Module):
         for d in range(self.depth):
             x = self.inceptions[d](x)
 
-        if self.use_residual and d % 3 == 2:
-            x = self.shortcuts[s_index](res_input,x)
-            res_input = x
-            s_index += 1
+            if self.use_residual and d % 3 == 2:
+                x = self.shortcuts[s_index](res_input,x)
+                res_input = x
+                s_index += 1
 
         x = torch.mean(x,dim=2)
         x = self.out(x)
