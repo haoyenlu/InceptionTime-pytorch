@@ -40,12 +40,12 @@ class InceptionTime(nn.Module):
                 use_attn = use_attn,
             ))
 
-        if use_residual and d % 3 == 2: # 2,5
-            self.shortcuts.append(ResidualLayer(
-                input_dim = residual_prev,
-                output_dim = (len(kernels)+1) * filter_size
-            ))
-            residual_prev = prev
+            if use_residual and d % 3 == 2: # 2,5
+                self.shortcuts.append(ResidualLayer(
+                    input_dim = residual_prev,
+                    output_dim = (len(kernels)+1) * filter_size
+                ))
+                residual_prev = prev
 
         prev = (len(kernels) + 1) * filter_size
 
@@ -53,10 +53,10 @@ class InceptionTime(nn.Module):
         self.shortcuts = nn.ModuleList(self.shortcuts)
 
         self.out = nn.Sequential(
-        nn.Linear(prev,label_dim * 2),
-        nn.ReLU(),
-        nn.Linear(label_dim * 2,label_dim),
-        nn.Softmax()
+            nn.Linear(prev,label_dim * 2),
+            nn.ReLU(),
+            nn.Linear(label_dim * 2,label_dim),
+            nn.Softmax()
         )
 
     def forward(self,x): # input shape: (N,C,L)
@@ -68,7 +68,7 @@ class InceptionTime(nn.Module):
         res_input = x
         s_index = 0
         for d in range(self.depth):
-        x = self.inceptions[d](x)
+            x = self.inceptions[d](x)
 
         if self.use_residual and d % 3 == 2:
             x = self.shortcuts[s_index](res_input,x)
