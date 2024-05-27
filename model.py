@@ -62,6 +62,7 @@ class InceptionTime(nn.Module):
     def forward(self,x): # input shape: (N,C,L)
         assert self.sequence_len == x.shape[2] and self.feature_size == x.shape[1]
         
+        print(x.shape)
         if self.use_embedding:
             x = self.embedding(x.permute((0,2,1))).permute((0,2,1))
 
