@@ -39,7 +39,7 @@ class TokenEmbedding(nn.Module): # NLC
     super(TokenEmbedding,self).__init__()
     padding = 1 if torch.__version__ >= '1.5.0' else 2
     self.tokenConv = nn.Conv1d(in_channels=c_in,out_channels=d_model,
-                               kernel_size=3,padding=padding,padding_mode='circular',bias=False)
+                               kernel_size=1,padding=padding,padding_mode='circular',bias=False)
     for m in self.modules():
       if isinstance(m,nn.Conv1d):
         nn.init.kaiming_normal(m.weight,mode='fan_in',nonlinearity='leaky_relu')
