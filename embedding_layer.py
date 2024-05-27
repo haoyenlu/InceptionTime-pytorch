@@ -19,7 +19,7 @@ class PositionalEmbedding(nn.Module): # NLC
     self.register_buffer('pe',pe)
 
   def forward(self,x):
-    return self.pe[:,:x.size(1)]
+    return self.pe[:,:x.size(1)] + x
   
   
 class LearnablePositionalEncoding(nn.Module): #NLC
@@ -57,5 +57,5 @@ class DataEmbedding(nn.Module):
     self.dropout = nn.Dropout(dropout)
 
   def forward(self,x):
-    x = self.value_embedding(x) + self.position_embedding(x) + x
+    x = self.value_embedding(x) + self.position_embedding(x)
     return self.dropout(x)
