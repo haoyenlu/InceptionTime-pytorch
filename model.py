@@ -90,7 +90,7 @@ class InceptionTime(nn.Module):
         lstm_out,  (_,_) = self.lstm(x.permute((0,2,1))) # NLC - > NLH
 
         x = self.lstm_fn(lstm_out[:,-1,:])
-        # x = self.softmax(x)
+        x = self.softmax(x)
 
         return x
   
