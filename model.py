@@ -10,7 +10,7 @@ from transformer_layer import Encoder
 
 
 class InceptionTime(nn.Module):
-    def __init__(self,sequence_len,feature_size,label_dim, 
+    def __init__(self,batch_size,sequence_len,feature_size,label_dim, 
                 filter_size=32,depth=6,kernels = [10,20,40],dropout=0.2,
                 use_residual=True, use_bottleneck=True,use_attn=False,use_embedding=False):
         
@@ -22,7 +22,10 @@ class InceptionTime(nn.Module):
         self.use_residual = use_residual
         self.use_attn = use_attn
         self.use_embedding = use_embedding
+        self.filter_size = filter_size
+        self.batch_size = batch_size
 
+        self.hidden = self.init_hidden()
         self.lstm = nn.Sequential(nn.LSTM(feature_size,hidden_size=filter_size,num_layers=4,batch_first=True))
         self.lstm_fn = nn.Linear(filter_size, label_dim)        
 
@@ -70,9 +73,7 @@ class InceptionTime(nn.Module):
         if self.use_embedding:
             x = self.embedding(x.permute((0,2,1))).permute((0,2,1))
         
-        lstm_out,  (_,_) = self.lstm(x.permute((0,2,1))) # NLC - > NLH
 
-        x = lstm_out.permute((0,2,1))
         res_input = x
         s_index = 0
         for d in range(self.depth):
@@ -83,14 +84,18 @@ class InceptionTime(nn.Module):
                 res_input = x
                 s_index += 1
 
-        incep_out = torch.mean(x,dim=2) # NC
-        lstm_out = torch.mean(lstm_out,dim=1)
+        # incep_out = torch.mean(x,dim=2) # NC
 
-        x = self.out(incep_out) + self.lstm_fn(lstm_out)
-        x = self.softmax(x)
+        lstm_out,  (_,_) = self.lstm(x.permute((0,2,1))) # NLC - > NLH
+
+        x = self.lstm_fn(lstm_out[-1])
+        # x = self.softmax(x)
 
         return x
   
+    def init_hidden(self):
+        return (torch.autograd.Variable(torch.zeros(1, self.batch_size, self.filter_size)),
+                torch.autograd.Variable(torch.zeros(1, self.batch_size, self.filter_size)))
 
 class Transformer(nn.Module):
     def __init__(self,seq_len,feature_size,label_dim,d_model,n_head,fn_hidden,n_layers,dropout):
