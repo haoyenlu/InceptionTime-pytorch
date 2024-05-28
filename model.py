@@ -55,17 +55,12 @@ class InceptionTime(nn.Module):
 
         self.inceptions = nn.ModuleList(self.inceptions)
         self.shortcuts = nn.ModuleList(self.shortcuts)
-
-        self.ch_attention = EfficientChannelAttention(input_dim=prev)
-
-        self.hidden = self.init_hidden()
-        self.lstm = nn.LSTM(prev,hidden_size=filter_size,num_layers=4,batch_first=True)
-        self.lstm_fn = nn.Linear(filter_size, label_dim)        
+    
 
         self.out = nn.Sequential(
-            # nn.Linear(prev,label_dim * 2),
-            # nn.ReLU(),
-            nn.Linear(prev,label_dim),
+            nn.Linear(prev,label_dim * 2),
+            nn.ReLU(),
+            nn.Linear(label_dim*2,label_dim),
         )
 
         self.softmax = nn.Softmax()
@@ -87,13 +82,7 @@ class InceptionTime(nn.Module):
                 res_input = x
                 s_index += 1
 
-        # incep_out = torch.mean(x,dim=2) # NC
-        
-        x = self.ch_attention(x) # NCL
 
-        # lstm_out,  (_,_) = self.lstm(x.permute((0,2,1))) # NLC - > NLH
-
-        # x = self.lstm_fn(torch.mean(lstm_out,dim=1))
         x = torch.mean(x,dim=2)
         x = self.out(x)
         x = self.softmax(x)
@@ -103,37 +92,3 @@ class InceptionTime(nn.Module):
     def init_hidden(self):
         return (torch.autograd.Variable(torch.zeros(4, self.batch_size, self.filter_size),requires_grad=False).to(self.device),
                 torch.autograd.Variable(torch.zeros(4, self.batch_size, self.filter_size),requires_grad=False).to(self.device))
-
-class Transformer(nn.Module):
-    def __init__(self,seq_len,feature_size,label_dim,d_model,n_head,fn_hidden,n_layers,dropout):
-        super(Transformer,self).__init__()
-        self.encoder_input_layer = nn.Linear(feature_size,d_model)
-        self.emb = PositionalEmbedding(d_model,seq_len)
-        self.encoder = Encoder(
-            n_layers=n_layers,
-            d_model=d_model,
-            fn_hidden=fn_hidden,
-            n_head=n_head,
-            dropout=dropout
-        )
-
-        self.out = nn.Sequential(
-            nn.LayerNorm(d_model),
-            nn.Flatten(),
-            nn.Linear(d_model * seq_len,512),
-            nn.ReLU(),
-            nn.Linear(512,256),
-            nn.ReLU(),
-            nn.Linear(256,128),
-            nn.ReLU(),
-            nn.Linear(128,label_dim),
-            nn.Softmax()
-        )
-
-    def forward(self,x): # NCL
-        x = x.permute((0,2,1)) # NLC
-        x = self.encoder_input_layer(x)
-        x = self.emb(x)
-        x = self.encoder(x)
-        x = self.out(x)
-        return x
