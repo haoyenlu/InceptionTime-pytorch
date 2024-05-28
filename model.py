@@ -32,7 +32,7 @@ class InceptionTime(nn.Module):
         self.inceptions = []
         self.shortcuts = []
 
-        prev = filter_size
+        prev = feature_size
         residual_prev = prev
 
         for d in range(depth):
