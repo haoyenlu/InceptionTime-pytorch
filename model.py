@@ -62,9 +62,9 @@ class InceptionTime(nn.Module):
         self.lstm_fn = nn.Linear(filter_size, label_dim)        
 
         self.out = nn.Sequential(
-            nn.Linear(prev,label_dim * 2),
-            nn.ReLU(),
-            nn.Linear(label_dim * 2,label_dim),
+            # nn.Linear(prev,label_dim * 2),
+            # nn.ReLU(),
+            nn.Linear(prev,label_dim),
         )
 
         self.softmax = nn.Softmax()
@@ -86,10 +86,10 @@ class InceptionTime(nn.Module):
                 res_input = x
                 s_index += 1
 
-        # incep_out = torch.mean(x,dim=2) # NC
+        incep_out = torch.mean(x,dim=2) # NC
         lstm_out,  (_,_) = self.lstm(x.permute((0,2,1))) # NLC - > NLH
 
-        x = self.lstm_fn(lstm_out[:,-1,:])
+        x = self.out(incep_out) + self.lstm_fn(lstm_out[:,-1,:])
         x = self.softmax(x)
 
         return x
