@@ -71,11 +71,10 @@ class EfficientChannelAttention(nn.Module): # NCL
     self.conv = nn.Conv1d(1,1,kernel_size=self.k,padding=int(self.k/2),bias=False)
 
   def forward(self,x):
-    _x = torch.mean(x,dim=2).unsqueeze(-1)
-    print(_x.shape)
-    _x = self.conv(_x.transpose(-1,-2))
-    _x = _x.transpose(-1,-2)
-    return x * _x.expand_as(x)
+    y = torch.mean(x,dim=2).unsqueeze(-1)
+    y = self.conv(y.transpose(-1,-2))
+    y = y.transpose(-1,-2)
+    return x * y.expand_as(x)
 
 
 
