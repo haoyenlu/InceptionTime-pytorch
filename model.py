@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from layer import InceptionModule, ResidualLayer
+from layer import InceptionModule, ResidualLayer, EfficientChannelAttention
 
 from embedding_layer import DataEmbedding
 
@@ -25,7 +25,6 @@ class InceptionTime(nn.Module):
         self.use_embedding = use_embedding
         self.filter_size = filter_size
         self.batch_size = batch_size
-
 
 
         self.embedding = DataEmbedding(c_in = feature_size,d_model=feature_size,dropout=dropout,max_len=sequence_len)
@@ -57,6 +56,8 @@ class InceptionTime(nn.Module):
         self.inceptions = nn.ModuleList(self.inceptions)
         self.shortcuts = nn.ModuleList(self.shortcuts)
 
+        self.ch_attention = EfficientChannelAttention(input_dim=prev)
+
         self.hidden = self.init_hidden()
         self.lstm = nn.LSTM(prev,hidden_size=filter_size,num_layers=4,batch_first=True)
         self.lstm_fn = nn.Linear(filter_size, label_dim)        
@@ -80,16 +81,19 @@ class InceptionTime(nn.Module):
         s_index = 0
         for d in range(self.depth):
             x = self.inceptions[d](x)
-            print(x.shape)
+
             if self.use_residual and d % 3 == 2:
                 x = self.shortcuts[s_index](res_input,x)
                 res_input = x
                 s_index += 1
 
-        incep_out = torch.mean(x,dim=2) # NC
+        # incep_out = torch.mean(x,dim=2) # NC
+        
+        x = self.ch_attention(x)
+
         lstm_out,  (_,_) = self.lstm(x.permute((0,2,1))) # NLC - > NLH
 
-        x = self.out(incep_out) + self.lstm_fn(lstm_out[:,-1,:])
+        x = self.lstm_fn(lstm_out[:,-1,:])
         x = self.softmax(x)
 
         return x
