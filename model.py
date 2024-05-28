@@ -15,6 +15,7 @@ class InceptionTime(nn.Module):
                 use_residual=True, use_bottleneck=True,use_attn=False,use_embedding=False):
         
         super(InceptionTime,self).__init__()
+        self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.sequence_len = sequence_len
         self.feature_size = feature_size
         self.label_dim = label_dim
@@ -96,8 +97,8 @@ class InceptionTime(nn.Module):
         return x
   
     def init_hidden(self):
-        return (torch.autograd.Variable(torch.zeros(4, self.batch_size, self.filter_size)),
-                torch.autograd.Variable(torch.zeros(4, self.batch_size, self.filter_size)))
+        return (torch.autograd.Variable(torch.zeros(4, self.batch_size, self.filter_size)).to(self.device),
+                torch.autograd.Variable(torch.zeros(4, self.batch_size, self.filter_size)).to(self.device))
 
 class Transformer(nn.Module):
     def __init__(self,seq_len,feature_size,label_dim,d_model,n_head,fn_hidden,n_layers,dropout):
