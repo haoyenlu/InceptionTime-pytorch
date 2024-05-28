@@ -16,6 +16,7 @@ class InceptionModule(nn.Module):
 
     self.conv_list = []
     prev = input_dim if not use_bottleneck else self.bottleneck_size
+
     for kernel in kernels:
       self.conv_list.append(nn.Conv1d(prev,filter_size,kernel_size=kernel,padding='same',bias=False))
 
@@ -24,7 +25,7 @@ class InceptionModule(nn.Module):
     self.max_pool_1 = nn.MaxPool1d(kernel_size=3,padding=1,stride=1)
     self.conv6 = nn.Conv1d(input_dim,self.filter_size,kernel_size=1,padding='same',bias=False)
 
-    self.bn = nn.BatchNorm2d(filter_size)
+    self.bn = nn.BatchNorm1d((len(kernels) + 1) * filter_size)
     self.act = nn.GELU()
 
 
@@ -40,10 +41,10 @@ class InceptionModule(nn.Module):
     _x = self.max_pool_1(_x)
     x_list.append(self.conv6(_x))
 
-    x = torch.stack(x_list,dim=2) # N , C , C , L
-    print(x.shape)
+    x = torch.stack(x_list,dim=2) 
     x = self.bn(x)
     x = self.act(x)
+  
     return x
 
 class ResidualLayer(nn.Sequential):
@@ -71,6 +72,7 @@ class EfficientChannelAttention(nn.Module): # NCL
 
   def forward(self,x):
     _x = torch.mean(x,dim=2).unsqueeze(-1)
+    print(_x.shape)
     _x = self.conv(_x.transpose(-1,-2))
     _x = _x.transpose(-1,-2)
     return x * _x.expand_as(x)
