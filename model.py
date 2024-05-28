@@ -89,11 +89,12 @@ class InceptionTime(nn.Module):
 
         # incep_out = torch.mean(x,dim=2) # NC
         
-        x = self.ch_attention(x)
+        x = self.ch_attention(x) # NCL
 
         # lstm_out,  (_,_) = self.lstm(x.permute((0,2,1))) # NLC - > NLH
 
         # x = self.lstm_fn(torch.mean(lstm_out,dim=1))
+        x = torch.mean(x,dim=2)
         x = self.out(x)
         x = self.softmax(x)
 
