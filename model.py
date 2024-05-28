@@ -87,7 +87,7 @@ class InceptionTime(nn.Module):
                 s_index += 1
 
         # incep_out = torch.mean(x,dim=2) # NC
-        lstm_out,  self.hidden = self.lstm(x.permute((0,2,1)), self.hidden) # NLC - > NLH
+        lstm_out,  (_,_) = self.lstm(x.permute((0,2,1)), self.hidden) # NLC - > NLH
 
         x = self.lstm_fn(lstm_out[:,-1,:])
         # x = self.softmax(x)
