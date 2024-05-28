@@ -57,7 +57,7 @@ class InceptionTime(nn.Module):
         self.shortcuts = nn.ModuleList(self.shortcuts)
 
         self.hidden = self.init_hidden()
-        self.lstm = nn.Sequential(nn.LSTM(prev,hidden_size=filter_size,num_layers=4,batch_first=True))
+        self.lstm = nn.LSTM(prev,hidden_size=filter_size,num_layers=4,batch_first=True)
         self.lstm_fn = nn.Linear(filter_size, label_dim)        
 
         self.out = nn.Sequential(
