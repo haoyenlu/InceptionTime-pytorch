@@ -83,12 +83,9 @@ class InceptionTime(nn.Module):
                 s_index += 1
 
 
-        x = torch.mean(x,dim=2)
+        x = torch.mean(x,dim=2) # NCL -> NC
         x = self.out(x)
         x = self.softmax(x)
 
         return x
   
-    def init_hidden(self):
-        return (torch.autograd.Variable(torch.zeros(4, self.batch_size, self.filter_size),requires_grad=False).to(self.device),
-                torch.autograd.Variable(torch.zeros(4, self.batch_size, self.filter_size),requires_grad=False).to(self.device))
