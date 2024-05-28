@@ -23,7 +23,7 @@ class InceptionTime(nn.Module):
         self.use_attn = use_attn
         self.use_embedding = use_embedding
 
-        self.lstm = nn.Sequential(nn.LSTM(feature_size,hidden_size=filter_size,num_layers=2,batch_first=True))
+        self.lstm = nn.Sequential(nn.LSTM(feature_size,hidden_size=filter_size,num_layers=4,batch_first=True))
         self.lstm_fn = nn.Linear(filter_size, label_dim)        
 
 
@@ -32,7 +32,7 @@ class InceptionTime(nn.Module):
         self.inceptions = []
         self.shortcuts = []
 
-        prev = feature_size
+        prev = filter_size
         residual_prev = prev
 
         for d in range(depth):
@@ -70,7 +70,7 @@ class InceptionTime(nn.Module):
         if self.use_embedding:
             x = self.embedding(x.permute((0,2,1))).permute((0,2,1))
         
-        lstm_out,  (_,_) = self.lstm(x.permute((0,2,1))) # NLC - > NLH
+        x,  (_,_) = self.lstm(x.permute((0,2,1))) # NLC - > NLH
 
         res_input = x
         s_index = 0
@@ -83,9 +83,8 @@ class InceptionTime(nn.Module):
                 s_index += 1
 
         incep_out = torch.mean(x,dim=2) # NC
-        lstm_out = torch.mean(lstm_out,dim=1) # NH
         
-        x = self.lstm_fn(lstm_out) + self.out(incep_out)
+        x = self.out(incep_out)
         x = self.softmax(x)
 
         return x
