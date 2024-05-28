@@ -60,5 +60,11 @@ class ResidualLayer(nn.Sequential):
     x = residual + input
     x = self.act(x)
     return x
+  
+
+class EfficientChannelAttention(nn.Module):
+  def __init__(self,input_dim,gamma=2,b=1):
+    super(EfficientChannelAttention,self).__init__()
+    self.avg_pool = nn.AvgPool1d()
 
 

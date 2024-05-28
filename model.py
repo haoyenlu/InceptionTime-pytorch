@@ -80,7 +80,7 @@ class InceptionTime(nn.Module):
         s_index = 0
         for d in range(self.depth):
             x = self.inceptions[d](x)
-
+            print(x.shape)
             if self.use_residual and d % 3 == 2:
                 x = self.shortcuts[s_index](res_input,x)
                 res_input = x
