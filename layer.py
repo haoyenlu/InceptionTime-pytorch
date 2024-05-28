@@ -24,7 +24,7 @@ class InceptionModule(nn.Module):
     self.max_pool_1 = nn.MaxPool1d(kernel_size=3,padding=1,stride=1)
     self.conv6 = nn.Conv1d(input_dim,self.filter_size,kernel_size=1,padding='same',bias=False)
 
-    self.bn = nn.BatchNorm1d((len(kernels) + 1) * filter_size)
+    self.bn = nn.BatchNorm2d(filter_size)
     self.act = nn.GELU()
 
 
@@ -41,9 +41,9 @@ class InceptionModule(nn.Module):
     x_list.append(self.conv6(_x))
 
     x = torch.stack(x_list,dim=2) # N , C , C , L
+    print(x.shape)
     x = self.bn(x)
     x = self.act(x)
-    print(x.shape)
     return x
 
 class ResidualLayer(nn.Sequential):
