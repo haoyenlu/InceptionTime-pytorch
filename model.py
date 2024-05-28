@@ -23,6 +23,10 @@ class InceptionTime(nn.Module):
         self.use_attn = use_attn
         self.use_embedding = use_embedding
 
+        self.lstm = nn.Sequential(nn.LSTM(feature_size,hidden_size=filter_size,num_layers=2,batch_first=True))
+        self.lstm_fn = nn.Linear(filter_size, label_dim)        
+
+
         self.embedding = DataEmbedding(c_in = feature_size,d_model=feature_size,dropout=dropout,max_len=sequence_len)
 
         self.inceptions = []
@@ -56,14 +60,17 @@ class InceptionTime(nn.Module):
             nn.Linear(prev,label_dim * 2),
             nn.ReLU(),
             nn.Linear(label_dim * 2,label_dim),
-            nn.Softmax()
         )
+
+        self.softmax = nn.Softmax()
 
     def forward(self,x): # input shape: (N,C,L)
         assert self.sequence_len == x.shape[2] and self.feature_size == x.shape[1]
         
         if self.use_embedding:
             x = self.embedding(x.permute((0,2,1))).permute((0,2,1))
+        
+        lstm_out,  (_,_) = self.lstm(x.permute((0,2,1))) # NLC - > NLH
 
         res_input = x
         s_index = 0
@@ -75,8 +82,11 @@ class InceptionTime(nn.Module):
                 res_input = x
                 s_index += 1
 
-        x = torch.mean(x,dim=2)
-        x = self.out(x)
+        incep_out = torch.mean(x,dim=2) # NC
+        lstm_out = torch.mean(lstm_out,dim=1) # NH
+        
+        x = self.lstm_fn(lstm_out) + self.out(incep_out)
+        x = self.softmax(x)
 
         return x
   

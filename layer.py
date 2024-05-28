@@ -28,7 +28,7 @@ class InceptionModule(nn.Module):
     self.act = nn.GELU()
 
 
-  def forward(self,x):
+  def forward(self,x): # NCL
     _x = x
     if self.use_bottleneck:
       x = self.input_inception(x)
