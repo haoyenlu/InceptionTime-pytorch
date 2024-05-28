@@ -42,6 +42,7 @@ class InceptionModule(nn.Module):
     x_list.append(self.conv6(_x))
 
     x = torch.stack(x_list,dim=1) 
+    print(x.shape)
     x = self.bn(x)
     x = self.act(x)
   
