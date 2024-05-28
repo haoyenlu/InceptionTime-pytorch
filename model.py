@@ -70,8 +70,9 @@ class InceptionTime(nn.Module):
         if self.use_embedding:
             x = self.embedding(x.permute((0,2,1))).permute((0,2,1))
         
-        x,  (_,_) = self.lstm(x.permute((0,2,1))) # NLC - > NLH
+        lstm_out,  (_,_) = self.lstm(x.permute((0,2,1))) # NLC - > NLH
 
+        x = lstm_out.permute((0,2,1))
         res_input = x
         s_index = 0
         for d in range(self.depth):
@@ -83,8 +84,9 @@ class InceptionTime(nn.Module):
                 s_index += 1
 
         incep_out = torch.mean(x,dim=2) # NC
-        
-        x = self.out(incep_out)
+        lstm_out = torch.mean(lstm_out,dim=1)
+
+        x = self.out(incep_out) + self.lstm_fn(lstm_out)
         x = self.softmax(x)
 
         return x
