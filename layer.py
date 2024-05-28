@@ -41,8 +41,7 @@ class InceptionModule(nn.Module):
     _x = self.max_pool_1(_x)
     x_list.append(self.conv6(_x))
 
-    x = torch.stack(x_list,dim=1) 
-    print(x.shape)
+    x = torch.concat(x_list,dim=1) 
     x = self.bn(x)
     x = self.act(x)
   
