@@ -87,18 +87,16 @@ class InceptionTime(nn.Module):
                 s_index += 1
 
         # incep_out = torch.mean(x,dim=2) # NC
-        print(x.shape)
         lstm_out,  self.hidden = self.lstm(x.permute((0,2,1)), self.hidden) # NLC - > NLH
 
         x = self.lstm_fn(lstm_out[:,-1,:])
-        print(x.shape)
         # x = self.softmax(x)
 
         return x
   
     def init_hidden(self):
-        return (torch.autograd.Variable(torch.zeros(4, self.batch_size, self.filter_size)).to(self.device),
-                torch.autograd.Variable(torch.zeros(4, self.batch_size, self.filter_size)).to(self.device))
+        return (torch.autograd.Variable(torch.zeros(4, self.batch_size, self.filter_size),requires_grad=False).to(self.device),
+                torch.autograd.Variable(torch.zeros(4, self.batch_size, self.filter_size),requires_grad=False).to(self.device))
 
 class Transformer(nn.Module):
     def __init__(self,seq_len,feature_size,label_dim,d_model,n_head,fn_hidden,n_layers,dropout):
