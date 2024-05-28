@@ -25,9 +25,6 @@ class InceptionTime(nn.Module):
         self.filter_size = filter_size
         self.batch_size = batch_size
 
-        self.hidden = self.init_hidden()
-        self.lstm = nn.Sequential(nn.LSTM(feature_size,hidden_size=filter_size,num_layers=4,batch_first=True))
-        self.lstm_fn = nn.Linear(filter_size, label_dim)        
 
 
         self.embedding = DataEmbedding(c_in = feature_size,d_model=feature_size,dropout=dropout,max_len=sequence_len)
@@ -58,6 +55,10 @@ class InceptionTime(nn.Module):
 
         self.inceptions = nn.ModuleList(self.inceptions)
         self.shortcuts = nn.ModuleList(self.shortcuts)
+
+        self.hidden = self.init_hidden()
+        self.lstm = nn.Sequential(nn.LSTM(prev,hidden_size=filter_size,num_layers=4,batch_first=True))
+        self.lstm_fn = nn.Linear(filter_size, label_dim)        
 
         self.out = nn.Sequential(
             nn.Linear(prev,label_dim * 2),
