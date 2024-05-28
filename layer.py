@@ -40,10 +40,10 @@ class InceptionModule(nn.Module):
     _x = self.max_pool_1(_x)
     x_list.append(self.conv6(_x))
 
-    x = torch.concat(x_list,dim=1)
+    x = torch.stack(x_list,dim=2) # N , C , C , L
     x = self.bn(x)
     x = self.act(x)
-
+    print(x.shape)
     return x
 
 class ResidualLayer(nn.Sequential):
@@ -70,11 +70,9 @@ class EfficientChannelAttention(nn.Module): # NCL
     self.conv = nn.Conv1d(1,1,kernel_size=self.k,padding=int(self.k/2),bias=False)
 
   def forward(self,x):
-    N , C , L = x.shape
     _x = torch.mean(x,dim=2).unsqueeze(-1)
     _x = self.conv(_x.transpose(-1,-2))
     _x = _x.transpose(-1,-2)
-    print(_x.shape)
     return x * _x.expand_as(x)
 
 
