@@ -27,7 +27,7 @@ class InceptionModule(nn.Module):
 
     self.lstm = nn.LSTM(input_dim,filter_size,num_layers=2,batch_first=True)
 
-    self.bn = nn.BatchNorm1d((len(kernels) + 1) * filter_size)
+    self.bn = nn.BatchNorm1d((len(kernels) + 2) * filter_size)
     self.act = nn.GELU()
 
 
