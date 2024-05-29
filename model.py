@@ -54,11 +54,11 @@ class InceptionTime(nn.Module):
 
         self.fcn = []
         for i in range(fcn_layers):
-            self.fcn.append(FCNLayer(prev,fcn_filter,kernel_size=5,padding='same'))
+            self.fcn.append(FCNLayer(prev,fcn_filter,kernel_size=5,stride=2,padding=2))
             prev = fcn_filter
         
         self.fcn = nn.Sequential(*self.fcn)
-        self.out = nn.Linear(fcn_filter,label_dim)
+        self.out = nn.Linear(fcn_filter * (sequence_len // 2 ** (fcn_layers)),label_dim)
         self.dropout = nn.Dropout(dropout)
         self.softmax = nn.Softmax()
 
@@ -77,8 +77,9 @@ class InceptionTime(nn.Module):
                 s_index += 1
 
         x = self.fcn(x)
-        x = torch.mean(x,dim=2) # NCL -> NC (average pooling)
-        # x = self.dropout(x)
+        # x = torch.mean(x,dim=2) # NCL -> NC (average pooling)
+        x = torch.flatten(x,start_dim=1)
+        x = self.dropout(x)
         x = self.out(x)
         x = self.softmax(x)
 
