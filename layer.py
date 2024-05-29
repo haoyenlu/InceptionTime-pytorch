@@ -76,6 +76,15 @@ class EfficientChannelAttention(nn.Module): # NCL
     y = y.transpose(-1,-2)
     return x * y.expand_as(x)
 
-
+class FCNLayer(nn.Module):
+  def __init__(self,input_dim,output_dim,kernel_size,stride=1,padding=1):
+    super(FCNLayer,self).__init__()
+    self.model = nn.Sequential( 
+      nn.Conv1d(input_dim,output_dim,kernel_size,stride=stride,padding=padding),
+      nn.BatchNorm1d(output_dim),
+      nn.ReLU())
+  
+  def forward(self,x):
+    return self.model(x)
 
 

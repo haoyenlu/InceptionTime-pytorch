@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from layer import InceptionModule, ResidualLayer, EfficientChannelAttention
+from layer import InceptionModule, ResidualLayer, FCNLayer
 
 from embedding_layer import DataEmbedding
 
@@ -11,7 +11,7 @@ from transformer_layer import Encoder
 
 class InceptionTime(nn.Module):
     def __init__(self,batch_size,sequence_len,feature_size,label_dim, 
-                filter_size=32,depth=6,kernels = [10,20,40],dropout=0.2,
+                inception_filter=32,fcn_filter = 128,depth=6,fcn_layers = 6,kernels = [10,20,40],dropout=0.2,
                 use_residual=True, use_bottleneck=True,use_attn=False,use_embedding=False):
         
         super(InceptionTime,self).__init__()
@@ -23,7 +23,7 @@ class InceptionTime(nn.Module):
         self.use_residual = use_residual
         self.use_attn = use_attn
         self.use_embedding = use_embedding
-        self.filter_size = filter_size
+        self.filter_size = inception_filter
         self.batch_size = batch_size
 
 
@@ -38,7 +38,7 @@ class InceptionTime(nn.Module):
         for d in range(depth):
             self.inceptions.append(InceptionModule(
                 prev,
-                filter_size,
+                inception_filter,
                 kernels,
                 use_bottleneck,
                 use_attn = use_attn,
@@ -47,22 +47,22 @@ class InceptionTime(nn.Module):
             if use_residual and d % 3 == 2: # 2,5
                 self.shortcuts.append(ResidualLayer(
                     input_dim = residual_prev,
-                    output_dim = (len(kernels)+1) * filter_size
+                    output_dim = (len(kernels)+1) * inception_filter
                 ))
                 residual_prev = prev
 
-            prev = (len(kernels) + 1) * filter_size
+            prev = (len(kernels) + 1) * inception_filter
 
         self.inceptions = nn.ModuleList(self.inceptions)
         self.shortcuts = nn.ModuleList(self.shortcuts)
-    
 
-        self.out = nn.Sequential(
-            nn.Linear(prev,label_dim * 2),
-            nn.ReLU(),
-            nn.Linear(label_dim*2,label_dim),
-        )
-
+        self.fcn = []
+        for i in range(fcn_layers):
+            self.fcn.append(FCNLayer(prev,fcn_filter,kernel_size=5,stide=2,padding=2))
+            prev = fcn_filter
+        
+        self.fcn = nn.ModuleList(self.fcn)
+        self.out = nn.Linear(fcn_filter,label_dim)
         self.softmax = nn.Softmax()
 
     def forward(self,x): # input shape: (N,C,L)
@@ -82,8 +82,8 @@ class InceptionTime(nn.Module):
                 res_input = x
                 s_index += 1
 
-
-        x = torch.mean(x,dim=2) # NCL -> NC
+        x = self.fcn(x)
+        x = torch.mean(x,dim=2) # NCL -> NC (average pooling)
         x = self.out(x)
         x = self.softmax(x)
 
