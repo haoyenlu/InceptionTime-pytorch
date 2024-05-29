@@ -35,6 +35,7 @@ class InceptionModule(nn.Module):
     _x = x
     if self.use_bottleneck:
       x = self.input_inception(x)
+      print(x.shape)
 
     x_list = []
     for conv in self.conv_list:
