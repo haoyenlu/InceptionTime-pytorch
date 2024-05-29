@@ -52,12 +52,12 @@ class InceptionTime(nn.Module):
         self.inceptions = nn.ModuleList(self.inceptions)
         self.shortcuts = nn.ModuleList(self.shortcuts)
 
-        self.fcn = []
-        for i in range(fcn_layers):
-            self.fcn.append(FCNLayer(prev,fcn_filter,kernel_size=5,stride=2,padding=2))
-            prev = fcn_filter
+        # self.fcn = []
+        # for i in range(fcn_layers):
+        #     self.fcn.append(FCNLayer(prev,fcn_filter,kernel_size=5,stride=2,padding=2))
+        #     prev = fcn_filter
         
-        self.fcn = nn.Sequential(*self.fcn)
+        # self.fcn = nn.Sequential(*self.fcn)
         # self.out = nn.Linear(fcn_filter * (sequence_len // 2 ** (fcn_layers)),label_dim)
         self.out = nn.Linear(prev,label_dim)
         self.dropout = nn.Dropout(dropout)
