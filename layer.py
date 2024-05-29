@@ -40,7 +40,8 @@ class InceptionModule(nn.Module):
     for conv in self.conv_list:
       x_list.append(conv(x))
 
-    lstm_x, (_,_) = self.lstm(_x.permute((0,2,1))).permute((0,2,1))
+    lstm_x, (_,_) = self.lstm(_x.permute((0,2,1)))
+    lstm_x = lstm_x.permute((0,2,1))
 
     _x = self.max_pool_1(_x)
     x_list.append(self.conv6(_x))
