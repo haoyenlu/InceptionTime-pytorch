@@ -21,13 +21,9 @@ class InceptionTime(nn.Module):
         self.label_dim = label_dim
         self.depth = depth
         self.use_residual = use_residual
-        self.use_attn = use_attn
         self.use_embedding = use_embedding
         self.filter_size = inception_filter
         self.batch_size = batch_size
-
-
-        self.embedding = DataEmbedding(c_in = feature_size,d_model=feature_size,dropout=dropout,max_len=sequence_len)
 
         self.inceptions = []
         self.shortcuts = []
@@ -63,13 +59,11 @@ class InceptionTime(nn.Module):
         
         self.fcn = nn.ModuleList(self.fcn)
         self.out = nn.Linear(fcn_filter,label_dim)
+        self.dropout = nn.Dropout(dropout)
         self.softmax = nn.Softmax()
 
     def forward(self,x): # input shape: (N,C,L)
         assert self.sequence_len == x.shape[2] and self.feature_size == x.shape[1]
-        
-        if self.use_embedding:
-            x = self.embedding(x.permute((0,2,1))).permute((0,2,1))
         
 
         res_input = x
@@ -84,6 +78,7 @@ class InceptionTime(nn.Module):
 
         x = self.fcn(x)
         x = torch.mean(x,dim=2) # NCL -> NC (average pooling)
+        x = self.dropout(x)
         x = self.out(x)
         x = self.softmax(x)
 

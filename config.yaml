@@ -10,13 +10,14 @@ dataset:
   lr: 0.001
 
 model:
-  filter_size: 64
-  dropout: 0.1
+  inception_filter: 64
+  fcn_filter: 128
+  dropout: 0.2
   depth: 6
+  fcn_layers: 6
   kernels: [10,20,40]
   use_residual: True
   use_bottleneck: True
-  use_attn: True
   use_embedding: False
 
 
