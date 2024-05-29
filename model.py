@@ -40,7 +40,7 @@ class InceptionTime(nn.Module):
                 use_attn = use_attn,
             ))
 
-            if use_residual and d % 3 == 2: # 2,5
+            if use_residual and d % 2 == 1: 
                 self.shortcuts.append(ResidualLayer(
                     input_dim = residual_prev,
                     output_dim = (len(kernels)+2) * inception_filter
