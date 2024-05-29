@@ -47,7 +47,7 @@ class InceptionTime(nn.Module):
                 ))
                 residual_prev = prev
 
-            prev = (len(kernels) + 1) * inception_filter
+            prev = (len(kernels) + 2) * inception_filter
 
         self.inceptions = nn.ModuleList(self.inceptions)
         self.shortcuts = nn.ModuleList(self.shortcuts)
