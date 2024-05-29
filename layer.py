@@ -52,7 +52,6 @@ class InceptionModule(nn.Module):
     x = self.bn(x)
     x = self.act(x)
 
-    print(x.shape)
     return x
 
 class ResidualLayer(nn.Sequential):
