@@ -43,7 +43,7 @@ class InceptionTime(nn.Module):
             if use_residual and d % 3 == 2: # 2,5
                 self.shortcuts.append(ResidualLayer(
                     input_dim = residual_prev,
-                    output_dim = (len(kernels)+1) * inception_filter
+                    output_dim = (len(kernels)+2) * inception_filter
                 ))
                 residual_prev = prev
 
@@ -58,7 +58,8 @@ class InceptionTime(nn.Module):
             prev = fcn_filter
         
         self.fcn = nn.Sequential(*self.fcn)
-        self.out = nn.Linear(fcn_filter * (sequence_len // 2 ** (fcn_layers)),label_dim)
+        # self.out = nn.Linear(fcn_filter * (sequence_len // 2 ** (fcn_layers)),label_dim)
+        self.out = nn.Linear(prev,label_dim)
         self.dropout = nn.Dropout(dropout)
         self.softmax = nn.Softmax()
 
@@ -76,10 +77,10 @@ class InceptionTime(nn.Module):
                 res_input = x
                 s_index += 1
 
-        x = self.fcn(x)
-        # x = torch.mean(x,dim=2) # NCL -> NC (average pooling)
-        x = torch.flatten(x,start_dim=1)
-        x = self.dropout(x)
+        # x = self.fcn(x)
+        x = torch.mean(x,dim=2) # NCL -> NC (average pooling)
+        # x = torch.flatten(x,start_dim=1)
+        # x = self.dropout(x)
         x = self.out(x)
         x = self.softmax(x)
 

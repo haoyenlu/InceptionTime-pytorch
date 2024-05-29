@@ -25,6 +25,8 @@ class InceptionModule(nn.Module):
     self.max_pool_1 = nn.MaxPool1d(kernel_size=3,padding=1,stride=1)
     self.conv6 = nn.Conv1d(input_dim,self.filter_size,kernel_size=1,padding='same',bias=False)
 
+    self.lstm = nn.LSTM(input_dim,filter_size,num_layers=2,batch_first=True)
+
     self.bn = nn.BatchNorm1d((len(kernels) + 1) * filter_size)
     self.act = nn.GELU()
 
@@ -38,8 +40,12 @@ class InceptionModule(nn.Module):
     for conv in self.conv_list:
       x_list.append(conv(x))
 
+    lstm_x = self.lstm(_x.permute((0,2,1))).permute((0,2,1))
+
     _x = self.max_pool_1(_x)
     x_list.append(self.conv6(_x))
+
+    x_list.append(lstm_x)
 
     x = torch.concat(x_list,dim=1) 
     x = self.bn(x)
