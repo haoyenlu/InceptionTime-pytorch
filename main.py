@@ -58,7 +58,9 @@ def main():
     config = load_yaml_config(args.config)
 
     model = InceptionTime(config['dataset']['batch_size'],config['dataset']['seq_len'],config['dataset']['feature_size'],config['dataset']['label_dim'],
-                            filter_size=config['model']['filter_size'],dropout=config['model']['dropout'],depth=config['model']['depth'],kernels=config['model']['kernels'],
+                            inception_filter=config['model']['inception_filter'],fcn_filter=config['model']['fcn_filter'],
+                            dropout=config['model']['dropout'],depth=config['model']['depth'],fcn_layers=config['model']['fcn_layers']
+                            kernels=config['model']['kernels'],
                             use_residual=config['model']['use_residual'],use_bottleneck=config['model']['use_bottleneck'],use_attn=config['model']['use_attn'],use_embedding=config['model']['use_embedding'])
     
 
