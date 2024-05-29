@@ -54,7 +54,7 @@ class InceptionTime(nn.Module):
 
         self.fcn = []
         for i in range(fcn_layers):
-            self.fcn.append(FCNLayer(prev,fcn_filter,kernel_size=5,stide=2,padding=2))
+            self.fcn.append(FCNLayer(prev,fcn_filter,kernel_size=5,stride=2,padding=2))
             prev = fcn_filter
         
         self.fcn = nn.ModuleList(self.fcn)

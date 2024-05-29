@@ -63,18 +63,6 @@ class ResidualLayer(nn.Sequential):
     return x
   
 
-class EfficientChannelAttention(nn.Module): # NCL
-  def __init__(self,input_dim,gamma=2,b=1):
-    super(EfficientChannelAttention,self).__init__()
-    self.t = int(abs((math.log(input_dim,2) + b) / gamma))
-    self.k = self.t if self.t % 2 else self.t + 1
-    self.conv = nn.Conv1d(1,1,kernel_size=self.k,padding=int(self.k/2),bias=False)
-
-  def forward(self,x):
-    y = torch.mean(x,dim=2).unsqueeze(-1)
-    y = self.conv(y.transpose(-1,-2))
-    y = y.transpose(-1,-2)
-    return x * y.expand_as(x)
 
 class FCNLayer(nn.Module):
   def __init__(self,input_dim,output_dim,kernel_size,stride=1,padding=1):
