@@ -2,7 +2,7 @@ import argparse
 import yaml
 import numpy as np
 
-from model import InceptionTime, Transformer
+from model import InceptionTime
 from data_util import create_dataloader
 from train_util import Trainer
 
