@@ -57,7 +57,7 @@ class InceptionTime(nn.Module):
             self.fcn.append(FCNLayer(prev,fcn_filter,kernel_size=5,stride=2,padding=2))
             prev = fcn_filter
         
-        self.fcn = nn.ModuleList(self.fcn)
+        self.fcn = nn.Sequential(*self.fcn)
         self.out = nn.Linear(fcn_filter,label_dim)
         self.dropout = nn.Dropout(dropout)
         self.softmax = nn.Softmax()
