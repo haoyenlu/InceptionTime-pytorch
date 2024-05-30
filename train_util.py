@@ -32,6 +32,7 @@ class Trainer:
         for sequence,label in train_dataloader:
           sequence , label = sequence.float().to(self.device), label.float().to(self.device)
           pred = self.model(sequence)
+          print(pred.shape)
           train_loss = self.loss_fn(pred,label)
           train_loss.backward()
           self.optimizer.step()
