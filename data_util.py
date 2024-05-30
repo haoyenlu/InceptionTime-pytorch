@@ -10,7 +10,6 @@ def create_dataloader(data,label,batch_size=16,split_size=0.8,type='task'):
   split = math.floor(data.shape[0] * split_size)
   train_index, test_index = indices[:split], indices[split:]
   label = create_label(label,type)
-  print(label.shape)
   
   train_dataset = []
   for i in train_index:
