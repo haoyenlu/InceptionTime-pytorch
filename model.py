@@ -77,10 +77,10 @@ class InceptionTime(nn.Module):
                 res_input = x
                 s_index += 1
 
-        # x = self.fcn(x)
-        x = torch.mean(x,dim=2) # NCL -> NC (average pooling)
-        # x = torch.flatten(x,start_dim=1)
-        # x = self.dropout(x)
+        x = self.fcn(x)
+        # x = torch.mean(x,dim=2) # NCL -> NC (average pooling)
+        x = torch.flatten(x,start_dim=1)
+        x = self.dropout(x)
         x = self.out(x)
         x = self.softmax(x)
 
