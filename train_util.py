@@ -3,6 +3,7 @@ import torch.nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import os
+import numpy as np
 
 
 class Trainer:
@@ -78,3 +79,23 @@ class Trainer:
     data = torch.load(os.path.joint(self.save_path,f"checkpoint-{step}.pt"),map_location=device)
     self.model.load_state_dict(data['model'])
     self.optimizer.load_state_dict(data['opt'])
+
+  def predict(self,dataloader):
+    test_total_loss = 0
+    test_total_accuracy = 0
+    gt = []
+    prediction = []
+    self.model.eval()
+    for sequence,label in tqdm(dataloader):
+      sequence , label = sequence.float().to(self.device), label.float().to(self.device)
+      pred = self.model(sequence)
+      test_loss = self.loss_fn(pred,label)
+      test_total_loss += test_loss.item()
+      label_decode = torch.max(label,1)[1]
+      pred_decode = torch.max(pred,1)[1]
+      test_total_accuracy += (label_decode == pred_decode).sum().item()
+      prediction.append(pred_decode.detach().cpu().numpy())
+      gt.append(label_decode.detach().cpu().numpy())
+    
+    return np.array(prediction),np.array(gt), test_total_loss/len(dataloader), test_total_accuracy/len(dataloader)
+  
