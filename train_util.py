@@ -76,7 +76,7 @@ class Trainer:
 
   def load(self,step):
     device = self.device
-    data = torch.load(os.path.joint(self.save_path,f"checkpoint-{step}.pt"),map_location=device)
+    data = torch.load(os.path.join(self.save_path,f"checkpoint-{step}.pt"),map_location=device)
     self.model.load_state_dict(data['model'])
     self.optimizer.load_state_dict(data['opt'])
 
