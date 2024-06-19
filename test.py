@@ -88,7 +88,7 @@ def main():
     prediction, gt , loss, accuracy = trainer.predict(train_dataloader)
     create_heatmap(gt,prediction)
 
-    print(f"Finish Prediction -, Accuracy:{accuracy_score(gt,prediction,normalize=True) * 100}%")
+    print(f"Finish Prediction -, Accuracy Score:{accuracy_score(gt,prediction,normalize=True) * 100}%")
 
 
 
