@@ -83,8 +83,8 @@ class Trainer:
   def predict(self,dataloader):
     test_total_loss = 0
     test_total_accuracy = 0
-    gt = []
-    prediction = []
+    gt = np.array([])
+    prediction = np.array([])
     self.model.eval()
     for sequence,label in tqdm(dataloader):
       sequence , label = sequence.float().to(self.device), label.float().to(self.device)
@@ -94,10 +94,9 @@ class Trainer:
       label_decode = torch.max(label,1)[1]
       pred_decode = torch.max(pred,1)[1]
       test_total_accuracy += (label_decode == pred_decode).sum().item()
-      print(pred_decode.shape)
-      print(label_decode.shape)
-      prediction.append(pred_decode.detach().cpu().numpy())
-      gt.append(label_decode.detach().cpu().numpy())
+      np.append(prediction,pred_decode.detach().cpu().numpy())
+      np.append(gt,label_decode.detach().cpu().numpy())
     
-    return np.array(prediction),np.array(gt), test_total_loss/len(dataloader), test_total_accuracy/len(dataloader)
+    print(gt.shape,prediction.shape)
+    return prediction,gt, test_total_loss/len(dataloader), test_total_accuracy/len(dataloader)
   
