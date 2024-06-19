@@ -6,7 +6,7 @@ from model import InceptionTime
 from data_util import create_dataloader
 from train_util import Trainer
 
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix,accuracy_score
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -88,7 +88,7 @@ def main():
     prediction, gt , loss, accuracy = trainer.predict(train_dataloader)
     create_heatmap(gt,prediction)
 
-    print(f"Finish Prediction - Loss:{loss:.4f}, Accuracy:{accuracy:.4f}")
+    print(f"Finish Prediction -, Accuracy:{accuracy_score(gt,prediction,normalize=True) * 100}%")
 
 
 
