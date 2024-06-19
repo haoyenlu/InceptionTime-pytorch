@@ -60,7 +60,7 @@ def parse_argument():
 
 def create_heatmap(gt, prediction,title="Prediction"):
     
-    cm = confusion_matrix(gt prediction)
+    cm = confusion_matrix(gt, prediction)
     f = sns.heatmap(cm, annot=True, fmt='d')
     f.figure.suptitle(title)
     f.figure.savefig("Prediction.png")
