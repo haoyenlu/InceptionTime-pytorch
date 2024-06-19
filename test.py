@@ -10,6 +10,7 @@ from sklearn.metrics import confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+
 import torch
 
 def load_yaml_config(path):
@@ -59,7 +60,8 @@ def parse_argument():
 
 
 def create_heatmap(gt, prediction,title="Prediction"):
-    
+
+    plt.figure(figsize = (12,12))
     cm = confusion_matrix(gt, prediction)
     f = sns.heatmap(cm, annot=True, fmt='d')
     f.figure.suptitle(title)
