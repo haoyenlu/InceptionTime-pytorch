@@ -36,7 +36,7 @@ def load_data(path,config,aug_path = None,split_size=1.0):
     assert config['dataset']['seq_len'] == T and config['dataset']['feature_size'] == C
 
     train_loader , test_loader = create_dataloader(sequence,label,
-                                                   config['dataset']['batch_size'],config['dataset']['split_size'],config['dataset']['label_type'],split_size=split_size)
+                                                   config['dataset']['batch_size'],split_size,config['dataset']['label_type'])
     
 
     return  train_loader, test_loader
