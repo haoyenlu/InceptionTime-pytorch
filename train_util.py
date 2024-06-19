@@ -94,8 +94,8 @@ class Trainer:
       label_decode = torch.max(label,1)[1]
       pred_decode = torch.max(pred,1)[1]
       test_total_accuracy += (label_decode == pred_decode).sum().item()
-      np.append(prediction,pred_decode.detach().cpu().numpy())
-      np.append(gt,label_decode.detach().cpu().numpy())
+      prediction = np.append(prediction,pred_decode.detach().cpu().numpy())
+      gt = np.append(gt,label_decode.detach().cpu().numpy())
     
     print(gt.shape,prediction.shape)
     return prediction,gt, test_total_loss/len(dataloader), test_total_accuracy/len(dataloader)
