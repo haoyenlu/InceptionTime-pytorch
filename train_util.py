@@ -1,6 +1,7 @@
 import torch
 import torch.nn
 from torch.utils.data import DataLoader
+from sklearn.metrics import accuracy_score
 from tqdm import tqdm
 import os
 import numpy as np
@@ -29,6 +30,8 @@ class Trainer:
         train_total_loss = 0
         train_total_accuracy = 0
 
+        gt_label = np.array([])
+        pred_label = np.array([])
         self.model.train()
         for sequence,label in train_dataloader:
           sequence , label = sequence.float().to(self.device), label.float().to(self.device)
@@ -93,10 +96,8 @@ class Trainer:
       test_total_loss += test_loss.item()
       label_decode = torch.max(label,1)[1]
       pred_decode = torch.max(pred,1)[1]
-      test_total_accuracy += (label_decode == pred_decode).sum().item()
       prediction = np.append(prediction,pred_decode.detach().cpu().numpy())
       gt = np.append(gt,label_decode.detach().cpu().numpy())
     
-    print(gt.shape,prediction.shape)
-    return prediction,gt, test_total_loss/len(dataloader), test_total_accuracy/len(dataloader)
+    return prediction,gt
   

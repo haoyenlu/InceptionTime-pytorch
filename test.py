@@ -33,7 +33,7 @@ def load_data(path,config,aug_path = None,split_size=1.0):
 
     B,C,T = sequence.shape
 
-
+    print(T,C)
     assert config['dataset']['seq_len'] == T and config['dataset']['feature_size'] == C
 
     train_loader , test_loader = create_dataloader(sequence,label,
@@ -85,7 +85,7 @@ def main():
     print(f"Data Size:{len(train_dataloader)}")
     trainer = Trainer(model,config['dataset']['max_iteration'],config['dataset']['lr'],config['dataset']['save_iteration'],args.ckpt)
     trainer.load(args.step)
-    prediction, gt , loss, accuracy = trainer.predict(train_dataloader)
+    prediction, gt = trainer.predict(train_dataloader)
     create_heatmap(gt,prediction)
 
     print(f"Finish Prediction -, Accuracy Score:{accuracy_score(gt,prediction,normalize=True) * 100}%")
