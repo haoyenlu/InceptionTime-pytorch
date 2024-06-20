@@ -31,7 +31,7 @@ def load_data(path,config,aug_path = None,split_size=1.0):
         sequence = np.concatenate((sequence,aug_sequence),axis=0)
         label = np.concatenate((label,aug_label),axis=0)
 
-    B,C,T = sequence.shape
+    B,T,C = sequence.shape
 
     print(T,C)
     assert config['dataset']['seq_len'] == T and config['dataset']['feature_size'] == C
