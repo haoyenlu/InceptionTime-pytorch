@@ -6,6 +6,9 @@ from model import InceptionTime
 from data_util import create_dataloader
 from train_util import Trainer
 
+from sklearn.metrics import confusion_matrix,accuracy_score
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
 def load_yaml_config(path):
@@ -44,6 +47,14 @@ def load_data(train_path,test_path,config,aug_path = None):
 
     return  train_loader, valid_loader, test_loader
 
+def create_heatmap(gt, prediction,title="Prediction"):
+
+    plt.figure(figsize = (12,12))
+    cm = confusion_matrix(gt, prediction)
+    f = sns.heatmap(cm, annot=True, fmt='d')
+    f.figure.suptitle(title)
+    f.figure.savefig("Prediction.png")
+
 
 def parse_argument():
     parser = argparse.ArgumentParser()
@@ -51,7 +62,7 @@ def parse_argument():
     parser.add_argument('--test_data',type=str,default=None)
     parser.add_argument('--aug_data',type=str,default=None)
     parser.add_argument('--ckpt',type=str,default=None)
-    parser.add_argument('--step',type=int,default=1)
+    parser.add_argument('--step',type=int,default=None)
     parser.add_argument('--config',type=str,default=None)
 
     
@@ -77,7 +88,9 @@ def main():
     trainer = Trainer(model,config['dataset']['max_iteration'],config['dataset']['lr'],config['dataset']['save_iteration'],args.ckpt)
 
     trainer.fit(train_dataloader,valid_dataloader)
-
+    prediction, gt = trainer.predict(test_dataloader)
+    create_heatmap(gt,prediction)
+    print(f"Finish Prediction -, Accuracy Score:{accuracy_score(gt,prediction,normalize=True) * 100}%")
 
 if __name__ == '__main__':
     main()

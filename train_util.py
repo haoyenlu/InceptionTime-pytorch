@@ -41,7 +41,7 @@ class Trainer:
           self.optimizer.step()
           self.optimizer.zero_grad()
           train_total_loss += train_loss.item()
-          train_total_accuracy += (torch.max(label,1)[1] == torch.max(pred,1)[1]).sum().item()
+          train_total_accuracy += accuracy_score(torch.max(label,1)[1].detach().cpu().numpy(), torch.max(pred,1)[1].detach().cpu().numpy(),normalize=False)
 
         test_total_loss = 0
         test_total_accuracy = 0
@@ -52,7 +52,7 @@ class Trainer:
           pred = self.model(sequence)
           test_loss = self.loss_fn(pred,label)
           test_total_loss += test_loss.item()
-          test_total_accuracy += (torch.max(label,1)[1] == torch.max(pred,1)[1]).sum().item()
+          test_total_accuracy += accuracy_score(torch.max(label,1)[1].detach().cpu().numpy(), torch.max(pred,1)[1].detach().cpu().numpy(),normalize=False)
 
         step += 1
 
@@ -84,8 +84,6 @@ class Trainer:
     self.optimizer.load_state_dict(data['opt'])
 
   def predict(self,dataloader):
-    test_total_loss = 0
-    test_total_accuracy = 0
     gt = np.array([])
     prediction = np.array([])
     self.model.eval()
