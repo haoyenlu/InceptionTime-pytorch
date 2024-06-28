@@ -14,33 +14,41 @@ def load_yaml_config(path):
     return config
 
 
-def load_data(path,config,aug_path = None):
-    data = np.load(path,allow_pickle=True).item()
+def load_data(train_path,test_path,config,aug_path = None):
+    train_data = np.load(train_path,allow_pickle=True).item()
+    test_data = np.load(test_path,allow_pickle=True).item()
 
 
-    sequence,label = data['data'], data['label']
 
     if aug_path is not None:
         aug_data = np.load(aug_path,allow_pickle=True).item()
         aug_sequence,aug_label = aug_data['data'],aug_data['label']
-        sequence = np.concatenate((sequence,aug_sequence),axis=0)
-        label = np.concatenate((label,aug_label),axis=0)
-
-    B,C,T = sequence.shape
+        train_data['data'] = np.concatenate((train_data['data'],aug_data['data']),axis=0)
+        train_data['label'] = np.concatenate((train_data['label'],aug_data['label']),axis=0)
 
 
-    assert config['dataset']['seq_len'] == T and config['dataset']['feature_size'] == C
 
-    train_loader , test_loader = create_dataloader(sequence,label,
-                                                   config['dataset']['batch_size'],config['dataset']['split_size'],config['dataset']['label_type'])
+    assert config['dataset']['seq_len'] == train_data['data'].shape[2] and config['dataset']['feature_size'] == train_data['data'].shape[1]
+    assert config['dataset']['seq_len'] == test_data['data'].shape[2] and config['dataset']['feature_size'] == test_data['data'].shape[1] 
+   
+    split_size = round(train_data['data'].shape[0] * config['dataset']['split_size'])
+    label = np.arange(train_data['data'].shape[0])
+    label = np.random.shuffle(label)
+    train_label = label[:split_size]
+    valid_label = label[split_size:]
+
+    train_loader = create_dataloader(train_data['data'][train_label],train_data['label'][train_label],config['dataset']['batch_size'])
+    valid_loader = create_dataloader(train_data['data'][valid_label],train_data['label'][valid_label],config['dataset']['batch_size'])
+    test_loader = create_dataloader(test_data['data'],test_data['label'],config['dataset']['batch_size'])
     
 
-    return  train_loader, test_loader
+    return  train_loader, valid_loader, test_loader
 
 
 def parse_argument():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data',type=str,default=None)
+    parser.add_argument('--train_data',type=str,default=None)
+    parser.add_argument('--test_data',type=str,default=None)
     parser.add_argument('--aug_data',type=str,default=None)
     parser.add_argument('--ckpt',type=str,default=None)
     parser.add_argument('--step',type=int,default=1)
@@ -65,10 +73,10 @@ def main():
     
 
 
-    train_dataloader , test_dataloader = load_data(args.data,config,aug_path=args.aug_data)
+    train_dataloader ,valid_dataloader, test_dataloader = load_data(args.data,config,aug_path=args.aug_data)
     trainer = Trainer(model,config['dataset']['max_iteration'],config['dataset']['lr'],config['dataset']['save_iteration'],args.ckpt)
 
-    trainer.fit(train_dataloader,test_dataloader)
+    trainer.fit(train_dataloader,valid_dataloader)
 
 
 if __name__ == '__main__':

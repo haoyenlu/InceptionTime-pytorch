@@ -19,11 +19,10 @@ def load_yaml_config(path):
     return config
 
 
-def load_data(path,config,aug_path = None,split_size=1.0):
-    data = np.load(path,allow_pickle=True).item()
+def load_data(train_path,test_path,config,aug_path = None):
+    train_data = np.load(train_path,allow_pickle=True).item()
+    test_data = np.load(test_path,allow_pickle=True).item()
 
-
-    sequence,label = data['data'], data['label']
 
     if aug_path is not None:
         aug_data = np.load(aug_path,allow_pickle=True).item()
@@ -31,28 +30,26 @@ def load_data(path,config,aug_path = None,split_size=1.0):
         sequence = np.concatenate((sequence,aug_sequence),axis=0)
         label = np.concatenate((label,aug_label),axis=0)
 
-    B,C,T = sequence.shape
 
-    print(B,C,T)
-    assert config['dataset']['seq_len'] == T and config['dataset']['feature_size'] == C
+    assert config['dataset']['seq_len'] == train_data['data'].shape[2] and config['dataset']['feature_size'] == train_data['data'].shape[1]
+    assert config['dataset']['seq_len'] == test_data['data'].shape[2] and config['dataset']['feature_size'] == test_data['data'].shape[1]
 
-    train_loader , test_loader = create_dataloader(sequence,label,
-                                                   config['dataset']['batch_size'],split_size,config['dataset']['label_type'])
-    
+    train_loader  = create_dataloader(train_data['data'],train_data['label'],config['dataset']['batch_size'])
+    test_loader = create_dataloader(test_data['data'],test_data['label'],config['dataset']['batch_size'])
 
     return  train_loader, test_loader
 
 
 def parse_argument():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data',type=str,default=None)
+    parser.add_argument('--train_data',type=str,default=None)
+    parser.add_argument('--test_data',type=str,default=None)
     parser.add_argument('--aug_data',type=str,default=None)
     parser.add_argument('--ckpt',type=str,default=None)
     parser.add_argument('--step',type=int,default=1)
     parser.add_argument('--config',type=str,default=None)
     parser.add_argument('--split',type=float,default=1.0)
 
-    
 
     args = parser.parse_args()
 
@@ -80,12 +77,12 @@ def main():
     
 
 
-    train_dataloader , test_dataloader = load_data(args.data,config,aug_path=args.aug_data,split_size=args.split)
+    train_dataloader , test_dataloader = load_data(args.train_data,args.test_data,config,aug_path=args.aug_data)
 
     print(f"Data Size:{len(train_dataloader)}")
     trainer = Trainer(model,config['dataset']['max_iteration'],config['dataset']['lr'],config['dataset']['save_iteration'],args.ckpt)
     trainer.load(args.step)
-    prediction, gt = trainer.predict(train_dataloader)
+    prediction, gt = trainer.predict(test_dataloader)
     create_heatmap(gt,prediction)
 
     print(f"Finish Prediction -, Accuracy Score:{accuracy_score(gt,prediction,normalize=True) * 100}%")

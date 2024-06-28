@@ -4,17 +4,16 @@ dataset:
   label_dim: 30
   batch_size: 32
   split_size: 0.8
-  label_type: 'task'
   max_iteration: 1000
   save_iteration: 100
   lr: 0.001
 
 model:
   inception_filter: 64
-  fcn_filter: 128
+  fcn_filter: 64
   dropout: 0.2
   depth: 6
-  fcn_layers: 6
+  fcn_layers: 4
   kernels: [10,20,40]
   use_residual: True
   use_bottleneck: True
