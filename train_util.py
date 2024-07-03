@@ -61,8 +61,8 @@ class Trainer:
           with torch.no_grad():
             self.save(step)
 
-        self.history['train_loss'].append(train_total_loss.cpu() / float(len(train_dataloader)))
-        self.history['test_loss'].append(test_total_loss.cpu() / float(len(test_dataloader)))
+        self.history['train_loss'].append(train_total_loss / float(len(train_dataloader)))
+        self.history['test_loss'].append(test_total_loss / float(len(test_dataloader)))
         self.history['train_accuracy'].append(train_total_accuracy.cpu() / float(len(train_dataloader)))
         self.history['test_accuracy'].append(test_total_accuracy.cpu() / float(len(test_dataloader)))
 
