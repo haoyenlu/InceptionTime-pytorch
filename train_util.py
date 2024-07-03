@@ -9,7 +9,7 @@ import time
 
 
 class Trainer:
-  def __init__(self,model,max_iteration=1000,lr=0.001,save_iteration = 100, save_path="./save"):
+  def __init__(self,model,max_iteration=1000,lr=0.001,save_iteration = 100, ckpt_path="./save"):
     self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     self.model = model.to(self.device)
     self.max_iterations = max_iteration
@@ -17,8 +17,8 @@ class Trainer:
     self.loss_fn = torch.nn.CrossEntropyLoss()
     self.id = time.strftime("%Y_%m_%d_%H_%M",time.gmtime())
     self.save_iteration = save_iteration
-    self.save_path = save_path
-    os.makedirs(save_path,exist_ok=True)
+    self.save_path = os.path.join(ckpt_path,self.id)
+    os.makedirs(self.save_path,exist_ok=True)
 
     self.history = {'train_loss':[],'test_loss':[],'train_accuracy':[],'test_accuracy':[]}
 
