@@ -82,7 +82,7 @@ def main():
     
 
 
-    train_dataloader ,valid_dataloader, test_dataloader = load_data(args.data,config,aug_path=args.aug_data)
+    train_dataloader ,valid_dataloader, test_dataloader = load_data(args.train_data,config,aug_path=args.aug_data)
 
     trainer = Trainer(model,config['dataset']['max_iteration'],config['dataset']['lr'],config['dataset']['save_iteration'],args.ckpt)
 
