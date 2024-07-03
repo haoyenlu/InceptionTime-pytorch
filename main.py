@@ -39,8 +39,7 @@ def load_data(train_path,test_path,aug_path = None,config=None):
     assert config['dataset']['seq_len'] == test_data['data'].shape[2] and config['dataset']['feature_size'] == test_data['data'].shape[1] 
    
     split_size = round(train_data['data'].shape[0] * config['dataset']['split_size'])
-    label = np.arange(train_data['data'].shape[0])
-    label = np.random.shuffle(label)
+    label = np.random.shuffle(np.arange(train_data['data'].shape[0]))
     train_label = label[:split_size]
     valid_label = label[split_size:]
 
