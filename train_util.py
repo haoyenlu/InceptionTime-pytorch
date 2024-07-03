@@ -66,10 +66,10 @@ class Trainer:
         self.history['train_accuracy'].append(train_total_accuracy / float(len(train_dataloader)))
         self.history['test_accuracy'].append(test_total_accuracy / float(len(test_dataloader)))
 
-        pbar.set_description(f'Train loss: {(train_total_loss / float(len(train_dataloader))):.6f}, 
+        pbar.set_description(f'''Train loss: {(train_total_loss / float(len(train_dataloader))):.6f}, 
                             Train Accuracy: {(train_total_accuracy / float(len(train_dataloader))):.2f}%, 
                             Test loss: {(test_total_loss / float(len(test_dataloader))):.6f}, 
-                            Test Accuracy: {(test_total_accuracy / float(len(test_dataloader))):.2f}%')
+                            Test Accuracy: {(test_total_accuracy / float(len(test_dataloader))):.2f}%''')
 
         pbar.update(1)
 
