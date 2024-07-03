@@ -92,7 +92,6 @@ class Trainer:
       sequence , label = sequence.float().to(self.device), label.float().to(self.device)
       pred = self.model(sequence)
       test_loss = self.loss_fn(pred,label)
-      test_total_loss += test_loss.item()
       label_decode = label.argmax(dim=1)
       pred_decode = pred.argmax(dim=1)
       prediction = np.append(prediction,pred_decode.detach().cpu().numpy())
