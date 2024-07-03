@@ -61,10 +61,10 @@ class Trainer:
           with torch.no_grad():
             self.save(step)
 
-        self.history['train_loss'].append(train_total_loss / float(len(train_dataloader)))
-        self.history['test_loss'].append(test_total_loss / float(len(test_dataloader)))
-        self.history['train_accuracy'].append(train_total_accuracy / float(len(train_dataloader)))
-        self.history['test_accuracy'].append(test_total_accuracy / float(len(test_dataloader)))
+        self.history['train_loss'].append(train_total_loss.cpu() / float(len(train_dataloader)))
+        self.history['test_loss'].append(test_total_loss.cpu() / float(len(test_dataloader)))
+        self.history['train_accuracy'].append(train_total_accuracy.cpu() / float(len(train_dataloader)))
+        self.history['test_accuracy'].append(test_total_accuracy.cpu() / float(len(test_dataloader)))
 
         pbar.set_description(f"Train loss: {(train_total_loss / float(len(train_dataloader))):.6f}, Train Accuracy: {(train_total_accuracy / float(len(train_dataloader))):.2f}%, Test loss: {(test_total_loss / float(len(test_dataloader))):.6f},Test Accuracy: {(test_total_accuracy / float(len(test_dataloader))):.2f}%")
 
@@ -91,7 +91,6 @@ class Trainer:
     for sequence,label in tqdm(dataloader):
       sequence , label = sequence.float().to(self.device), label.float().to(self.device)
       pred = self.model(sequence)
-      test_loss = self.loss_fn(pred,label)
       label_decode = label.argmax(dim=1)
       pred_decode = pred.argmax(dim=1)
       prediction = np.append(prediction,pred_decode.detach().cpu().numpy())
