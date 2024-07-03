@@ -1,10 +1,11 @@
 import torch
 import torch.nn
-from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
 import os
 import numpy as np
+import time
+
 
 
 class Trainer:
@@ -14,7 +15,7 @@ class Trainer:
     self.max_iterations = max_iteration
     self.optimizer = torch.optim.Adam(self.model.parameters(),lr=lr,betas=[0.9,0.99])
     self.loss_fn = torch.nn.CrossEntropyLoss()
-
+    self.id = time.strftime("%Y_%m_%d_%H_%M",time.gmtime())
     self.save_iteration = save_iteration
     self.save_path = save_path
     os.makedirs(save_path,exist_ok=True)
@@ -30,8 +31,7 @@ class Trainer:
         train_total_loss = 0
         train_total_accuracy = 0
 
-        gt_label = np.array([])
-        pred_label = np.array([])
+
         self.model.train()
         for sequence,label in train_dataloader:
           sequence , label = sequence.float().to(self.device), label.float().to(self.device)
@@ -41,7 +41,7 @@ class Trainer:
           self.optimizer.step()
           self.optimizer.zero_grad()
           train_total_loss += train_loss.item()
-          train_total_accuracy += accuracy_score(torch.max(label,1)[1].detach().cpu().numpy(), torch.max(pred,1)[1].detach().cpu().numpy(),normalize=False)
+          train_total_accuracy += (pred.argmax(dim=1) == label.argmax(dim=1)).sum().float()
 
         test_total_loss = 0
         test_total_accuracy = 0
@@ -52,7 +52,8 @@ class Trainer:
           pred = self.model(sequence)
           test_loss = self.loss_fn(pred,label)
           test_total_loss += test_loss.item()
-          test_total_accuracy += accuracy_score(torch.max(label,1)[1].detach().cpu().numpy(), torch.max(pred,1)[1].detach().cpu().numpy(),normalize=False)
+          test_total_accuracy += (pred.argmax(dim=1) == label.argmax(dim=1)).sum().float()
+
 
         step += 1
 
@@ -60,12 +61,15 @@ class Trainer:
           with torch.no_grad():
             self.save(step)
 
-        self.history['train_loss'].append(train_total_loss / len(train_dataloader))
-        self.history['test_loss'].append(test_total_loss / len(test_dataloader))
-        self.history['train_accuracy'].append(train_total_accuracy / len(train_dataloader))
-        self.history['test_accuracy'].append(test_total_accuracy / len(test_dataloader))
+        self.history['train_loss'].append(train_total_loss / float(len(train_dataloader)))
+        self.history['test_loss'].append(test_total_loss / float(len(test_dataloader)))
+        self.history['train_accuracy'].append(train_total_accuracy / float(len(train_dataloader)))
+        self.history['test_accuracy'].append(test_total_accuracy / float(len(test_dataloader)))
 
-        pbar.set_description(f'Train loss: {train_total_loss / len(train_dataloader):.6f}, Train Accuracy: {train_total_accuracy / len(train_dataloader):.2f}%, Test loss: {test_total_loss / len(test_dataloader)}, Test Accuracy: {test_total_accuracy / len(test_dataloader):.2f}%')
+        pbar.set_description(f'Train loss: {(train_total_loss / float(len(train_dataloader))):.6f}, 
+                            Train Accuracy: {(train_total_accuracy / float(len(train_dataloader))):.2f}%, 
+                            Test loss: {(test_total_loss / float(len(test_dataloader))):.6f}, 
+                            Test Accuracy: {(test_total_accuracy / float(len(test_dataloader))):.2f}%')
 
         pbar.update(1)
 
@@ -92,10 +96,10 @@ class Trainer:
       pred = self.model(sequence)
       test_loss = self.loss_fn(pred,label)
       test_total_loss += test_loss.item()
-      label_decode = torch.max(label,1)[1]
-      pred_decode = torch.max(pred,1)[1]
+      label_decode = label.argmax(dim=1)
+      pred_decode = pred.argmax(dim=1)
       prediction = np.append(prediction,pred_decode.detach().cpu().numpy())
       gt = np.append(gt,label_decode.detach().cpu().numpy())
     
     return prediction,gt
-  
+

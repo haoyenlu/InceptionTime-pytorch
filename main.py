@@ -1,6 +1,8 @@
 import argparse
 import yaml
 import numpy as np
+import os
+import csv
 
 from model import InceptionTime
 from data_util import create_dataloader
@@ -10,6 +12,8 @@ from sklearn.metrics import confusion_matrix,accuracy_score
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+
+from plotting import plot_confusion_matrix, plot_history
 
 def load_yaml_config(path):
     with open(path) as f:
@@ -47,14 +51,6 @@ def load_data(train_path,test_path,config,aug_path = None):
 
     return  train_loader, valid_loader, test_loader
 
-def create_heatmap(gt, prediction,title="Prediction"):
-
-    plt.figure(figsize = (12,12))
-    cm = confusion_matrix(gt, prediction)
-    f = sns.heatmap(cm, annot=True, fmt='d')
-    f.figure.suptitle(title)
-    f.figure.savefig("Prediction.png")
-
 
 def parse_argument():
     parser = argparse.ArgumentParser()
@@ -64,7 +60,11 @@ def parse_argument():
     parser.add_argument('--ckpt',type=str,default=None)
     parser.add_argument('--step',type=int,default=None)
     parser.add_argument('--config',type=str,default=None)
-
+    parser.add_argument('--train',action="store_true")
+    parser.add_argument('--test',action="store_true")
+    parser.add_argument('--plot',action="store_true")
+    parser.add_argument('--image_path',type=str,default='./images')
+    parser.add_argument('--csv',type=str,default=None)
     
 
     args = parser.parse_args()
@@ -72,25 +72,56 @@ def parse_argument():
     return args
 
 
+
 def main():
     args = parse_argument()
     config = load_yaml_config(args.config)
 
     model = InceptionTime(config['dataset']['batch_size'],config['dataset']['seq_len'],config['dataset']['feature_size'],config['dataset']['label_dim'],
-                            inception_filter=config['model']['inception_filter'],fcn_filter=config['model']['fcn_filter'],
-                            dropout=config['model']['dropout'],depth=config['model']['depth'],fcn_layers=config['model']['fcn_layers'],
-                            kernels=config['model']['kernels'],
-                            use_residual=config['model']['use_residual'],use_bottleneck=config['model']['use_bottleneck'],use_embedding=config['model']['use_embedding'])
+                          **config.get('model',dict()))
     
 
 
     train_dataloader ,valid_dataloader, test_dataloader = load_data(args.data,config,aug_path=args.aug_data)
     trainer = Trainer(model,config['dataset']['max_iteration'],config['dataset']['lr'],config['dataset']['save_iteration'],args.ckpt)
 
-    trainer.fit(train_dataloader,valid_dataloader)
-    prediction, gt = trainer.predict(test_dataloader)
-    create_heatmap(gt,prediction)
-    print(f"Finish Prediction -, Accuracy Score:{accuracy_score(gt,prediction,normalize=True) * 100}%")
+    if args.step is not None:
+        trainer.load(args.step)
+
+    if args.train:
+        trainer.fit(train_dataloader,valid_dataloader)
+    
+    if args.test:
+        prediction, gt = trainer.predict(test_dataloader)
+        accuracy = accuracy_score(gt,prediction,normalize=True)
+        print(f"Finish Prediction -, Accuracy Score:{accuracy * 100}%")
+        
+        if args.plot:
+            output_path = os.path.join(args.image_path,trainer.id)
+            os.makedirs(output_path,exist_ok=True)
+
+            plot_confusion_matrix(real=gt,prediction=prediction,output_path=output_path)
+            plot_history(trainer.history['train_loss'],trainer.history['test_loss'],trainer.history['train_accuracy'],trainer.history['test_accuracy'],output_path)
+         
+        if args.csv is not None:
+            fields = config['csv_fields']
+            # Insert key to dict
+            data = {'train_data':args.train_data,
+                    'aug_data':args.aug_data,
+                    'test_data':args.test_data,
+                    'epoch':config['dataset']['max_iteration'],
+                    'accuracy':accuracy}
+
+            if os.path.isfile(args.csv):
+                with open(args.csv,'a') as file:
+                    writer = csv.DictWriter(file,fieldnames=fields)
+                    writer.writerow(data)
+            else:
+                with open(args.csv,'w') as file:
+                    writer = csv.DictWriter(file,fieldnames=fields)
+                    writer.writeheader()
+                    writer.writerow(data)
+
 
 if __name__ == '__main__':
     main()

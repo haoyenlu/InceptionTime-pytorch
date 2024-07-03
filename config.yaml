@@ -19,4 +19,11 @@ model:
   use_bottleneck: True
   use_embedding: False
 
+csv_fields:
+ - train_data
+ - aug_data
+ - test_data
+ - epoch
+ - accuracy
+
 
