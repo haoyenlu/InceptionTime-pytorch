@@ -21,7 +21,7 @@ def load_yaml_config(path):
     return config
 
 
-def load_data(train_path,test_path,config,aug_path = None):
+def load_data(train_path,test_path,aug_path = None,config=None):
     train_data = np.load(train_path,allow_pickle=True).item()
     test_data = np.load(test_path,allow_pickle=True).item()
 
@@ -82,7 +82,7 @@ def main():
     
 
 
-    train_dataloader ,valid_dataloader, test_dataloader = load_data(args.train_data,config,aug_path=args.aug_data)
+    train_dataloader ,valid_dataloader, test_dataloader = load_data(args.train_data,args.test_data,args.aug_data,config=config)
 
     trainer = Trainer(model,config['dataset']['max_iteration'],config['dataset']['lr'],config['dataset']['save_iteration'],args.ckpt)
 
